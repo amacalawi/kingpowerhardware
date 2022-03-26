@@ -1,0 +1,31 @@
+***** MIGRATION *****
+php artisan make:migration create_batches_table
+php artisan migrate:rollback --step=1
+php artisan migrate
+php artisan migrate:reset
+php artisan migrate:refresh
+php artisan migrate:refresh --seed
+composer dump-autoload
+
+***** SEEDS *****
+php artisan db:seed
+php artisan db:seed --class=UserSeeder
+php artisan migrate:fresh --seed
+php artisan db:seed --force
+
+php artisan serve --host=some.other.domain --port=8001
+
+Overtime
+Failure to Swipe
+Official Undertime
+Official Business
+Leave of Absence
+Change of Work Schedule
+
+withdrawal
+damaged
+recieved by
+
+
+
+
