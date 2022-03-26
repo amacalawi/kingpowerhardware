@@ -16,7 +16,7 @@ CLONE Repository for King Power Hardware
 
 ### Owners
 
-* King Power Hardware
+* Eric Paredes
 
 ### Contributors
 
