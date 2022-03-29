@@ -201,11 +201,13 @@
         | ---------------------------------
         */
         this.$body.on('click', '#itemTable .view-btn', function (e) {
+            var self   = $(this);
             var id     = $(this).closest('tr').attr('data-row-id');
             var code   = $(this).closest('tr').attr('data-row-code');
             var name   = $(this).closest('tr').attr('data-row-name');
             var modal  = $('#itemInventoryModal');
             var urlz   = base_url + 'auth/items/listing/get-all-inventory/' + id;
+            self.prop('disabled', true);
             console.log(urlz);
             $.ajax({
                 type: 'GET',
@@ -287,6 +289,7 @@
                 complete: function() {
                     window.onkeydown = null;
                     window.onfocus = null;
+                    self.prop('disabled', false);
                     
                     $('.date-picker').daterangepicker({
                         autoUpdateInput: false,
