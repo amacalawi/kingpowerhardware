@@ -42,7 +42,7 @@ class ItemController extends Controller
         $users = (new User)->all_users_selectpicker();
         $receivingTrans = ['' => 'Select a transaction', 'Returned Item' => 'Returned Item'];
         $withdrawalTrans = ['' => 'Select a transaction', 'Withdrawal' => 'Withdrawal', 'Transfer Item' => 'Transfer Item', 'Damaged Item' => 'Damaged Item'];
-        return view('modules/components/items/manage')->with(compact('menus', 'users', 'branches', 'unit_of_measurements', 'categories', 'withdrawalTrans', 'receivingTrans'));
+        return view('modules/items/listing/manage')->with(compact('menus', 'users', 'branches', 'unit_of_measurements', 'categories', 'withdrawalTrans', 'receivingTrans'));
     }
 
     public function inactive(Request $request)
@@ -52,7 +52,7 @@ class ItemController extends Controller
         $branches = (new Branch)->all_branches_selectpicker();
         $unit_of_measurements = (new UnitOfMeasurement)->all_uom_selectpicker();
         $categories = (new ItemCategory)->all_item_category_selectpicker();
-        return view('modules/components/items/manage-inactive')->with(compact('menus', 'branches', 'unit_of_measurements', 'categories'));
+        return view('modules/items/listing/manage-inactive')->with(compact('menus', 'branches', 'unit_of_measurements', 'categories'));
     }
 
     public function generate_item_code()
@@ -98,6 +98,7 @@ class ItemController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'srp' => $request->srp,
+            'srp2' => $request->srp2,
             'reorder_level' => $request->reorder_level,
             'created_at' => $timestamp,
             'created_by' => Auth::user()->id
@@ -164,6 +165,7 @@ class ItemController extends Controller
         $item->name = $request->name;
         $item->description = $request->description;
         $item->srp = $request->srp;
+        $item->srp2 = $request->srp2;
         $item->reorder_level = $request->reorder_level;
         $item->updated_at = $timestamp;
         $item->updated_by = Auth::user()->id;
@@ -230,7 +232,8 @@ class ItemController extends Controller
             $msg .= '<th class="min-w-125px">Item Description</th>';
             $msg .= '<th class="min-w-125px text-center">Total Quantity</th>';
             $msg .= '<th class="min-w-125px text-center">UOM</th>';
-            $msg .= '<th class="text-center min-w-125px">SRP</th>';
+            $msg .= '<th class="text-center min-w-80px">SRP</th>';
+            $msg .= '<th class="text-center min-w-80px">SRP2</th>';
             $msg .= '<th class="text-center">Last Modified</th>';
             $msg .= '<th class="text-center min-w-70px">Actions</th>';
             $msg .= '</tr>';
@@ -259,6 +262,10 @@ class ItemController extends Controller
                 if ($itemSrp <= 0) {
                     $itemSrp = 0;
                 }
+                $itemSrp2 = number_format(floor(($row->srp2*100))/100, 2);
+                if ($itemSrp2 <= 0) {
+                    $itemSrp2 = 0;
+                }
                 $itemInventory = Item::with([
                     'inventory' =>  function($q) { 
                         $q->select(['id', 'item_id', 'quantity']);
@@ -279,6 +286,7 @@ class ItemController extends Controller
                 $msg .= '<td class="text-center">'.$itemInventory.'</td>';
                 $msg .= '<td class="text-center">'.$row->uom.'</td>';
                 $msg .= '<td class="text-center">'.$itemSrp.'</td>';
+                $msg .= '<td class="text-center">'.$itemSrp2.'</td>';
                 $msg .= '<td class="text-center">'.$row->modified_at.'</td>';
                 $msg .= '<td class="text-center">';
                 $msg .= '<a href="javascript:;" title="modify this" class="edit-btn btn btn-sm btn-light btn-active-light-primary">';
@@ -405,6 +413,7 @@ class ItemController extends Controller
                 'items.name',
                 'items.description',
                 'items.srp',
+                'items.srp2',
                 'items.reorder_level',
                 'items_category.name as category',
                 'unit_of_measurements.code as uom',
@@ -446,6 +455,7 @@ class ItemController extends Controller
                 'items.name',
                 'items.description',
                 'items.srp',
+                'items.srp2',
                 'items.reorder_level',
                 'items_category.name as category',
                 'unit_of_measurements.code as uom',
@@ -482,6 +492,7 @@ class ItemController extends Controller
                 'uom' => $item->uom,
                 'category' => $item->category,
                 'srp' => $item->srp,
+                'srp2' => $item->srp2,
                 'reorder_level' => $item->reorder_level,
                 'modified_at' => ($item->updated_at !== NULL) ? date('d-M-Y', strtotime($item->updated_at)).'<br/>'. date('h:i A', strtotime($item->updated_at)) : date('d-M-Y', strtotime($item->created_at)).'<br/>'. date('h:i A', strtotime($item->created_at))
             ];
@@ -730,7 +741,7 @@ class ItemController extends Controller
         $msg .= '<tbody class="fw-bold text-gray-600">';
         
         $query = $this->get_line_items_inventory($per_page, $start_from, $keywords, $itemID, $branchID);
-        $count = $this->get_page_count_inventory($per_page, $start_from, $keywords, $itemID, $branchID);
+        $count = $this->get_page_count_inventory($keywords, $itemID, $branchID);
         $no_of_paginations = ceil($count / $per_page);
         $assets = url('assets/media/illustrations/work.png');
 
@@ -858,15 +869,12 @@ class ItemController extends Controller
                 'items_transactions.item_id' => $itemID, 
                 'items_transactions.branch_id' => $branchID
             ])
-            // ->where(function($q) use ($keywords) {
-            //     $q->where('items.code', 'like', '%' . $keywords . '%')
-            //       ->orWhere('items.name', 'like', '%' . $keywords . '%')
-            //       ->orWhere('items.description', 'like', '%' . $keywords . '%')
-            //       ->orWhere('items.mobile_no', 'like', '%' . $keywords . '%')
-            //       ->orWhere('items.email', 'like', '%' . $keywords . '%')
-            //       ->orWhere('items_category.name', 'like', '%' . $keywords . '%')
-            //       ->orWhere('unit_of_measurements.code', 'like', '%' . $keywords . '%');
-            // })
+            ->where(function($q) use ($keywords) {
+                $q->where('items_transactions.transaction', 'like', '%' . $keywords . '%')
+                    ->orWhere('items_transactions.based_quantity', 'like', '%' . $keywords . '%')
+                    ->orWhere('items_transactions.issued_quantity', 'like', '%' . $keywords . '%')
+                    ->orWhere('items_transactions.left_quantity', 'like', '%' . $keywords . '%');
+            })
             ->skip($start_from)->take($limit)
             ->orderBy('items_transactions.id', 'desc')
             ->get();
@@ -917,7 +925,7 @@ class ItemController extends Controller
         });
     }
 
-    public function get_page_count_inventory($limit, $start_from, $keywords = '', $itemID, $branchID)
+    public function get_page_count_inventory($keywords = '', $itemID, $branchID)
     {
         if (!empty($keywords)) {
             $res = ItemTransaction::with([
@@ -935,6 +943,12 @@ class ItemController extends Controller
             ->leftJoin('branches', function($join)
             {
                 $join->on('branches.id', '=', 'items_transactions.branch_id');
+            })
+            ->where(function($q) use ($keywords) {
+                $q->where('items_transactions.transaction', 'like', '%' . $keywords . '%')
+                    ->orWhere('items_transactions.based_quantity', 'like', '%' . $keywords . '%')
+                    ->orWhere('items_transactions.issued_quantity', 'like', '%' . $keywords . '%')
+                    ->orWhere('items_transactions.left_quantity', 'like', '%' . $keywords . '%');
             })
             ->where([
                 'items_transactions.is_active' => 1, 

@@ -1143,7 +1143,7 @@ class PurchaseOrderController extends Controller
                 'total_amount' => $PurchaseOrderLine->total_amount,
                 'issued_by' => Auth::user()->id,
                 'received_by' => Auth::user()->id,
-                'remarks' => 'Item receiving from '.$PurchaseOrder->PurchaseOrder_doc_no,
+                'remarks' => 'Item receiving from '.$PurchaseOrder->po_no,
                 'created_at' => $timestamp,
                 'created_by' => Auth::user()->id
             ]);

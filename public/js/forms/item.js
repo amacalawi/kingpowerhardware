@@ -40,7 +40,7 @@ var KTModalitemsAdd = (function () {
                     n.revalidateField("item_category_id");
                 }),
                 t.addEventListener("click", function (e) {
-                    var formUrl = ($('#itemModal').find('input[name="method"]').val() == 'add') ? r.getAttribute('action') : base_url + 'auth/components/items/update/' + $('#itemModal').find('input[name="id"]').val(); 
+                    var formUrl = ($('#itemModal').find('input[name="method"]').val() == 'add') ? r.getAttribute('action') : base_url + 'auth/items/listing/update/' + $('#itemModal').find('input[name="id"]').val(); 
                     var formMethod = ($('#itemModal').find('input[name="method"]').val() == 'add') ? 'POST' : 'PUT'; 
                     e.preventDefault(),
                         n &&
@@ -62,7 +62,8 @@ var KTModalitemsAdd = (function () {
                                                     if (data.type == 'success') {
                                                             Swal.fire({ title: data.title, text: data.text, icon: data.type, buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" } }).then(
                                                                 function (e) {
-                                                                    e.isConfirmed && (i.hide(), (t.disabled = !1));
+                                                                    i.hide();
+                                                                    t.disabled = !1;
                                                                     $.item.load_contents(1);
                                                                 }
                                                             );

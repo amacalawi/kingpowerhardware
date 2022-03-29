@@ -5,7 +5,7 @@
         <!--begin::Modal content-->
         <div class="modal-content">
             <!--begin::Form-->
-            <form class="form" action="{{ url('/auth/components/items/store-withdrawal')}}" id="itemWithdrawalForm" method="post">
+            <form class="form" action="{{ url('/auth/items/listing/store-withdrawal')}}" id="itemWithdrawalForm" method="post">
                 <!--begin::Modal header-->
                 <div class="modal-header" id="item_header">
                     <!--begin::Modal title-->

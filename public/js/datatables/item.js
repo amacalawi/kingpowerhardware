@@ -9,8 +9,8 @@
 
     item.prototype.load_contents = function(track_page) 
     {   
-        var keywords = '?keywords=' + $('#components-items #keywords').val() + '&perPage=' + $('#components-items #perPage').val();
-        var urls = base_url + 'auth/components/items/all-active';
+        var keywords = '?keywords=' + $('#items-listing #keywords').val() + '&perPage=' + $('#items-listing #perPage').val();
+        var urls = base_url + 'auth/items/listing/all-active';
         var me = $(this);
         var $portlet = $('#datatable-result');
 
@@ -39,7 +39,7 @@
     item.prototype.load_iventory_contents = function(track_page, $id, $branch, $modal, $dataresult) 
     {   
         var keywords = '?itemID=' + $id + '&branchID=' + $branch + '&keywords=' + $('#branch-'+ $branch +' .keywordx').val() + '&perPage=' + $('#branch-'+ $branch +' .perPagex').val();
-        var urls = base_url + 'auth/components/items/all-active-inventory';
+        var urls = base_url + 'auth/items/listing/all-active-inventory';
         var me = $(this);
         var $portlet = $modal.find('#'+ $dataresult);
 
@@ -77,6 +77,46 @@
 
         /*
         | ---------------------------------
+        | # numeric text
+        | ---------------------------------
+        */
+        this.$body.on("keypress", ".numeric-only", function (e) {
+
+            var verified = (e.which == 8 || e.which == undefined || e.which == 0) ? null : String.fromCharCode(e.which).match(/[^0-9]/);
+            if (verified) {
+                e.preventDefault();
+            }
+    
+        });
+        this.$body.on("keypress", ".numeric", function (event) {
+
+            var $this = $(this);
+            if ((event.which != 46 || $this.val().indexOf('.') != -1) &&
+                ((event.which < 48 || event.which > 57) &&
+                    (event.which != 0 && event.which != 8))) {
+                event.preventDefault();
+            }
+    
+            var text = $(this).val();
+            if ((event.which == 46) && (text.indexOf('.') == -1)) {
+                setTimeout(function () {
+                    if ($this.val().substring($this.val().indexOf('.')).length > 3) {
+                        $this.val($this.val().substring(0, $this.val().indexOf('.') + 3));
+                    }
+                }, 1);
+            }
+    
+            if ((text.indexOf('.') != -1) &&
+                (text.substring(text.indexOf('.')).length > 2) &&
+                (event.which != 0 && event.which != 8) &&
+                ($(this)[0].selectionStart >= text.length - 2)) {
+                event.preventDefault();
+            }
+    
+        });
+
+        /*
+        | ---------------------------------
         | # when modal is reset
         | ---------------------------------
         */
@@ -105,7 +145,7 @@
         */
         this.$body.on('click', '.add-item-btn', function (e) {
             var modal = $('#itemModal');
-            var urlz  = base_url + 'auth/components/items/generate-item-code';
+            var urlz  = base_url + 'auth/items/listing/generate-item-code';
             if (modal.find('input[name="method"]').val() == 'add') {
                 console.log(urlz);
                 $.ajax({
@@ -133,7 +173,7 @@
             var id     = $(this).closest('tr').attr('data-row-id');
             var code   = $(this).closest('tr').attr('data-row-code');
             var modal  = $('#itemModal');
-            var urlz   = base_url + 'auth/components/items/find/' + id;
+            var urlz   = base_url + 'auth/items/listing/find/' + id;
             console.log(urlz);
             $.ajax({
                 type: 'GET',
@@ -165,7 +205,7 @@
             var code   = $(this).closest('tr').attr('data-row-code');
             var name   = $(this).closest('tr').attr('data-row-name');
             var modal  = $('#itemInventoryModal');
-            var urlz   = base_url + 'auth/components/items/get-all-inventory/' + id;
+            var urlz   = base_url + 'auth/items/listing/get-all-inventory/' + id;
             console.log(urlz);
             $.ajax({
                 type: 'GET',
@@ -274,7 +314,7 @@
         this.$body.on('click', '#itemTable .remove-btn', function (e) {
             var id     = $(this).closest('tr').attr('data-row-id');
             var code   = $(this).closest('tr').attr('data-row-code');
-            var urlz   = base_url + 'auth/components/items/remove/' + id;
+            var urlz   = base_url + 'auth/items/listing/remove/' + id;
             console.log(urlz);
             Swal.fire({
                 html: "Are you sure you? <br/>the item with code ("+ code +") will be removed.",
@@ -409,9 +449,7 @@
             var self   = $(this);
             var branch = $(this).attr('data-row-branch');
             var item   = $(this).attr('data-row-item');
-            if (self.val() != '') {
-                $.item.load_iventory_contents(1, item, branch , $('#itemInventoryModal'), "branch-"+ branch +"-result");
-            }
+            $.item.load_iventory_contents(1, item, branch , $('#itemInventoryModal'), "branch-"+ branch +"-result");
         });
 
 
