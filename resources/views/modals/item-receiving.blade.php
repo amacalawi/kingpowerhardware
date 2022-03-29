@@ -5,7 +5,7 @@
         <!--begin::Modal content-->
         <div class="modal-content">
             <!--begin::Form-->
-            <form class="form" action="{{ url('/auth/components/items/store-receiving')}}" id="itemReceivingForm" method="post">
+            <form class="form" action="{{ url('/auth/items/listing/store-receiving')}}" id="itemReceivingForm" method="post">
                 <!--begin::Modal header-->
                 <div class="modal-header" id="item_header">
                     <!--begin::Modal title-->

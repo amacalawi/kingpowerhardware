@@ -94,6 +94,12 @@ div.dataTables_paginate ul.pagination {
     height: 1.2rem !important;
 }
 
+
+#datatable-result .las {
+    font-size: 1.2rem;
+}
+
+
 #datatable-lines-result .btn .svg-icon,
 #datatable-result .btn .svg-icon {
     margin-right: 0 !important;

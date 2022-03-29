@@ -10,6 +10,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\PaymentTermsController;
 use App\Http\Controllers\PurchaseOrderTypeController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\InventoryAdjustmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -81,6 +82,33 @@ Route::prefix('auth')->group(function () {
         Route::get('export',[PurchaseOrderController::class, 'export']);
     });
 
+    Route::prefix('items')->group(function () {
+        Route::prefix('listing')->group(function () {
+            Route::get('',[ItemController::class, 'index']);
+            Route::get('all-active',[ItemController::class, 'all_active']);
+            Route::get('inactive',[ItemController::class, 'inactive']);
+            Route::get('all-inactive',[ItemController::class, 'all_inactive']);
+            Route::get('find/{id?}',[ItemController::class, 'find']);
+            Route::post('store',[ItemController::class, 'store']);
+            Route::put('update/{id?}',[ItemController::class, 'update']);
+            Route::get('export',[ItemController::class, 'export']);
+            Route::put('remove/{id?}',[ItemController::class, 'remove']);
+            Route::get('generate-item-code',[ItemController::class, 'generate_item_code']);
+            Route::get('get-all-inventory/{id?}',[ItemController::class, 'get_all_inventory']);
+            Route::get('all-active-inventory',[ItemController::class, 'all_active_inventory']);
+            Route::get('find-item-quantity/{itemID?}/{branchId?}',[ItemController::class, 'find_item_quantity']);
+            Route::post('store-withdrawal',[ItemController::class, 'store_withdrawal']);
+            Route::post('store-receiving',[ItemController::class, 'store_receiving']);
+        });
+        
+        Route::prefix('inventory-adjustment')->group(function () {
+            Route::get('',[InventoryAdjustmentController::class, 'index']);
+            Route::get('all-active',[InventoryAdjustmentController::class, 'all_active']);
+            Route::post('store',[InventoryAdjustmentController::class, 'store']);
+            Route::get('get-item-info/{item?}/{branch?}',[InventoryAdjustmentController::class, 'get_item_info']);
+        });
+    });
+
     /* Components Routes */
     Route::prefix('components')->group(function () {
 
@@ -110,23 +138,7 @@ Route::prefix('auth')->group(function () {
             Route::put('restore/{id?}',[UnitOfMeasurementController::class, 'restore']);
         });
 
-        Route::prefix('items')->group(function () {
-            Route::get('',[ItemController::class, 'index']);
-            Route::get('all-active',[ItemController::class, 'all_active']);
-            Route::get('inactive',[ItemController::class, 'inactive']);
-            Route::get('all-inactive',[ItemController::class, 'all_inactive']);
-            Route::get('find/{id?}',[ItemController::class, 'find']);
-            Route::post('store',[ItemController::class, 'store']);
-            Route::put('update/{id?}',[ItemController::class, 'update']);
-            Route::get('export',[ItemController::class, 'export']);
-            Route::put('remove/{id?}',[ItemController::class, 'remove']);
-            Route::get('generate-item-code',[ItemController::class, 'generate_item_code']);
-            Route::get('get-all-inventory/{id?}',[ItemController::class, 'get_all_inventory']);
-            Route::get('all-active-inventory',[ItemController::class, 'all_active_inventory']);
-            Route::get('find-item-quantity/{itemID?}/{branchId?}',[ItemController::class, 'find_item_quantity']);
-            Route::post('store-withdrawal',[ItemController::class, 'store_withdrawal']);
-            Route::post('store-receiving',[ItemController::class, 'store_receiving']);
-        });
+        
 
         Route::prefix('branches')->group(function () {
             Route::get('',[BranchController::class, 'index']);

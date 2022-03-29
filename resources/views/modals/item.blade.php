@@ -5,7 +5,7 @@
         <!--begin::Modal content-->
         <div class="modal-content">
             <!--begin::Form-->
-            <form class="form" action="{{ url('/auth/components/items/store')}}" id="item_form" method="post">
+            <form class="form" action="{{ url('/auth/items/listing/store')}}" id="item_form" method="post">
                 <!--begin::Modal header-->
                 <div class="modal-header" id="item_header">
                     <!--begin::Modal title-->
@@ -94,24 +94,33 @@
                         <!--begin::Input group-->
                         <div class="fv-row row mb-2">
                             <!--begin::Label-->
-                            <div class="col-sm-6">
+                            <div class="col-sm-4">
                                 {{ Form::label('srp', 'SRP', ['class' => 'fs-6 fw-bold mb-2']) }}
                                 {{ 
                                     Form::text($name = 'srp', $value = '', 
                                     $attributes = array(
                                         'id' => 'srp',
-                                        'class' => 'form-control form-control-solid'
+                                        'class' => 'numeric form-control form-control-solid'
                                     )) 
                                 }}
                             </div>
-
-                            <div class="col-sm-6">
+                            <div class="col-sm-4">
+                                {{ Form::label('srp2', 'SRP 2', ['class' => 'fs-6 fw-bold mb-2']) }}
+                                {{ 
+                                    Form::text($name = 'srp2', $value = '', 
+                                    $attributes = array(
+                                        'id' => 'srp2',
+                                        'class' => 'numeric form-control form-control-solid'
+                                    )) 
+                                }}
+                            </div>
+                            <div class="col-sm-4">
                                 {{ Form::label('reorder_level', 'Re-order Level', ['class' => 'fs-6 fw-bold mb-2']) }}
                                 {{ 
                                     Form::text($name = 'reorder_level', $value = '', 
                                     $attributes = array(
                                         'id' => 'reorder_level',
-                                        'class' => 'form-control form-control-solid'
+                                        'class' => 'numeric form-control form-control-solid'
                                     )) 
                                 }}
                             </div>
