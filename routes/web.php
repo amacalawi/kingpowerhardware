@@ -12,6 +12,7 @@ use App\Http\Controllers\PurchaseOrderTypeController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\InventoryAdjustmentController;
 use App\Http\Controllers\TransferItemController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -199,6 +200,20 @@ Route::prefix('auth')->group(function () {
             Route::post('import',[PurchaseOrderTypeController::class, 'import']);
             Route::put('remove/{id?}',[PurchaseOrderTypeController::class, 'remove']);
             Route::put('restore/{id?}',[PurchaseOrderTypeController::class, 'restore']);
+        });
+
+        Route::prefix('users')->group(function () {
+            Route::get('',[UserController::class, 'index']);
+            Route::get('all-active',[UserController::class, 'all_active']);
+            Route::get('inactive',[UserController::class, 'inactive']);
+            Route::get('all-inactive',[UserController::class, 'all_inactive']);
+            Route::get('find/{id?}',[UserController::class, 'find']);
+            Route::post('store',[UserController::class, 'store']);
+            Route::put('update/{id?}',[UserController::class, 'update']);
+            Route::get('export',[UserController::class, 'export']);
+            Route::post('import',[UserController::class, 'import']);
+            Route::put('remove/{id?}',[UserController::class, 'remove']);
+            Route::put('restore/{id?}',[UserController::class, 'restore']);
         });
 
         Route::prefix('suppliers')->group(function () {
