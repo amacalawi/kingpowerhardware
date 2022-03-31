@@ -41,7 +41,7 @@ class ItemController extends Controller
         $categories = (new ItemCategory)->all_item_category_selectpicker();
         $users = (new User)->all_users_selectpicker();
         $receivingTrans = ['' => 'Select a transaction', 'Returned Item' => 'Returned Item'];
-        $withdrawalTrans = ['' => 'Select a transaction', 'Withdrawal' => 'Withdrawal', 'Transfer Item' => 'Transfer Item', 'Damaged Item' => 'Damaged Item'];
+        $withdrawalTrans = ['' => 'Select a transaction', 'Withdrawal' => 'Withdrawal', 'Damaged Item' => 'Damaged Item'];
         return view('modules/items/listing/manage')->with(compact('menus', 'users', 'branches', 'unit_of_measurements', 'categories', 'withdrawalTrans', 'receivingTrans'));
     }
 
@@ -178,7 +178,7 @@ class ItemController extends Controller
                 $exist = ItemInventory::where(['item_id' => $id, 'branch_id' => $branch->id])->get();
                 if (!($exist->count() > 0)) {
                     $itemInventory = ItemInventory::create([
-                        'item_id' => $item->id,
+                        'item_id' => $id,
                         'branch_id' => $branch->id,
                         'quantity' => 0,
                         'created_at' => $timestamp,
@@ -440,8 +440,6 @@ class ItemController extends Controller
                 $q->where('items.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.name', 'like', '%' . $keywords . '%')
                   ->orWhere('items.description', 'like', '%' . $keywords . '%')
-                  ->orWhere('items.mobile_no', 'like', '%' . $keywords . '%')
-                  ->orWhere('items.email', 'like', '%' . $keywords . '%')
                   ->orWhere('items_category.name', 'like', '%' . $keywords . '%')
                   ->orWhere('unit_of_measurements.code', 'like', '%' . $keywords . '%');
             })
@@ -532,8 +530,6 @@ class ItemController extends Controller
                 $q->where('items.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.name', 'like', '%' . $keywords . '%')
                   ->orWhere('items.description', 'like', '%' . $keywords . '%')
-                  ->orWhere('items.mobile_no', 'like', '%' . $keywords . '%')
-                  ->orWhere('items.email', 'like', '%' . $keywords . '%')
                   ->orWhere('items_category.name', 'like', '%' . $keywords . '%')
                   ->orWhere('unit_of_measurements.code', 'like', '%' . $keywords . '%');
             })
@@ -619,14 +615,123 @@ class ItemController extends Controller
         echo json_encode( $data ); exit();
     }
 
+    public function import(Request $request)
+    {   
+        // $this->is_permitted(0);
+        foreach($_FILES as $file)
+        {   
+            $row = 0; $timestamp = date('Y-m-d H:i:s');
+            if (($files = fopen($file['tmp_name'], "r")) !== FALSE) 
+            {
+                while (($data = fgetcsv($files, 3000, ",")) !== FALSE) 
+                {
+                    $row++; 
+                    if ($row > 1) 
+                    {  
+                        $exist = Item::where('code', $data[0])->get();
+                        $category = ItemCategory::where(['name' => trim($data[1])])->get();
+                        $uom = UnitOfMeasurement::where(['code' => trim($data[4])])->get();
+                        if ($exist->count() > 0) {
+                            $item = Item::find($exist->first()->id);
+                            $item->code = $data[0];
+                            $item->item_category_id = ($category->count() > 0) ? $category->first()->id : NULL;
+                            $item->uom_id = ($uom->count() > 0) ? $uom->first()->id : NULL;
+                            $item->name = $data[2];
+                            $item->description = $data[3];
+                            $item->srp = $data[5];
+                            $item->srp2 = $data[6];
+                            $item->updated_at = $timestamp;
+                            $item->updated_by = Auth::user()->id;
+
+                            if ($item->update()) {
+                                $branches = (new Branch)->all_branches();
+                                foreach ($branches as $branch) {
+                                    $inventoryExist = ItemInventory::where(['item_id' => $exist->first()->id, 'branch_id' => $branch->id])->get();
+                                    if (!($inventoryExist->count() > 0)) {
+                                        $itemInventory = ItemInventory::create([
+                                            'item_id' => $exist->first()->id,
+                                            'branch_id' => $branch->id,
+                                            'quantity' => 0,
+                                            'created_at' => $timestamp,
+                                            'created_by' => Auth::user()->id
+                                        ]);
+                                        if (!$itemInventory) {
+                                            throw new NotFoundHttpException();
+                                        }
+                                        $this->audit_logs('items_inventory', $itemInventory->id, 'has inserted a new item inventory.', ItemInventory::find($itemInventory->id), $timestamp, Auth::user()->id);
+                                    }
+                                }
+                                $this->audit_logs('items', $exist->first()->id, 'has modified an item.', Item::find($exist->first()->id), $timestamp, Auth::user()->id);
+                            }
+                        } else {
+                            $item = Item::create([
+                                'code' => $data[0],
+                                'item_category_id' => ($category->count() > 0) ? $category->first()->id : NULL,
+                                'uom_id' => ($uom->count() > 0) ? $uom->first()->id : NULL,
+                                'name' => $data[2],
+                                'description' => $data[3],
+                                'srp' => $data[5],
+                                'srp2' => $data[6],
+                                'created_at' => $timestamp,
+                                'created_by' => Auth::user()->id
+                            ]);
+                    
+                            if (!$item) {
+                                throw new NotFoundHttpException();
+                            }
+                            
+                            $branches = (new Branch)->all_branches();
+                            foreach ($branches as $branch) {
+                                $itemInventory = ItemInventory::create([
+                                    'item_id' => $item->id,
+                                    'branch_id' => $branch->id,
+                                    'quantity' => 0,
+                                    'created_at' => $timestamp,
+                                    'created_by' => Auth::user()->id
+                                ]);
+                                if (!$itemInventory) {
+                                    throw new NotFoundHttpException();
+                                }
+                                $this->audit_logs('items_inventory', $itemInventory->id, 'has inserted a new item inventory.', ItemInventory::find($itemInventory->id), $timestamp, Auth::user()->id);
+                            }
+                            $this->audit_logs('items', $item->id, 'has inserted a new item.', Item::find($item->id), $timestamp, Auth::user()->id);
+                        }
+                    } // close for if $row > 1 condition   
+                }
+                fclose($files);
+            }
+        }
+
+        $data = array(
+            'message' => 'success'
+        );
+
+        echo json_encode( $data );
+
+        exit();
+    }
+
     public function export(Request $request)
     {   
-        $fileName = 'items.csv';
+        $fileName = 'items_'.time().'.csv';
 
-        $items = Item::select(['items.id', 'items.code', 'items.name', 'items.description', 'items.email', 'items.mobile_no', 'items.mobile_no', 'items.agent_id'])
-        ->join('users', function($join)
+        $items = Item::select([
+            'items.code', 
+            'items_category.name as category',
+            'items.name', 
+            'items.description', 
+            'items.srp', 
+            'items.srp2', 
+            'items.reorder_level as reorder',
+            'unit_of_measurements.code as uom'
+        ])
+        ->leftJoin('items_category', function($join)
         {
-            $join->on('users.id', '=', 'items.agent_id');
+            $join->on('items_category.id', '=', 'items.item_category_id');
+        })
+        ->join('unit_of_measurements', function($join)
+        {
+            $join->on('unit_of_measurements.id', '=', 'items.uom_id');
         })
         ->where('items.is_active', 1)
         ->orderBy('items.id', 'asc')
@@ -640,22 +745,21 @@ class ItemController extends Controller
             "Expires"             => "0"
         );
 
-        $columns = array('ID No.', 'Code', 'Name', 'Company', 'Email', 'Mobile No.', 'Address', 'Agent ID');
+        $columns = array('Code', 'Category', 'Item Name', 'Item Description', 'UOM', 'SRP', 'SRP2');
 
         $callback = function() use($items, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
 
             foreach ($items as $item) {
-                $row['id']        = $item->id;
-                $row['code']      = $item->code;
-                $row['name']      = $item->name;
-                $row['company']   = $item->description;
-                $row['email']     = $item->email;
-                $row['mobile_no'] = $item->mobile_no;
-                $row['address']   = $item->address;
-                $row['agent_id']  = ($item->agent_id > 0) ? $item->agent_id : '-';
-                fputcsv($file, array($row['id'], $row['code'], $row['name'], $row['company'], $row['email'], $row['mobile_no'], $row['address'], $row['agent_id']));
+                $row['code']     = $item->code;
+                $row['category'] = $item->category;
+                $row['name']     = $item->name;
+                $row['desc']     = $item->description;
+                $row['uom']      = $item->uom;
+                $row['srp']      = $item->srp;
+                $row['srp2']     = $item->srp2;
+                fputcsv($file, array($row['code'], $row['category'], $row['name'], $row['desc'], $row['uom'], $row['srp'], $row['srp2']));
             }
 
             fclose($file);
@@ -668,7 +772,7 @@ class ItemController extends Controller
     {   
         $res = ItemInventory::with([
             'item' =>  function($q) { 
-                $q->select(['items.id', 'items.code', 'items.name', 'items.description', 'items.srp', 'items_category.name as category', 'unit_of_measurements.code as uom'])
+                $q->select(['items.id', 'items.code', 'items.name', 'items.description', 'items.srp', 'items.srp2', 'items_category.name as category', 'unit_of_measurements.code as uom'])
                 ->leftJoin('unit_of_measurements', function($join)
                 {
                     $join->on('unit_of_measurements.id', '=', 'items.uom_id');
@@ -698,6 +802,7 @@ class ItemController extends Controller
                 'uom' => $item->item->uom,
                 'category' => $item->item->category,
                 'srp' => $item->item->srp,
+                'srp2' => $item->item->srp2,
                 'quantity' => $item->quantity,
                 'reorder_level' => $item->item->reorder_level,
                 'modified_at' => ($item->updated_at !== NULL) ? date('d-M-Y', strtotime($item->updated_at)).'<br/>'. date('h:i A', strtotime($item->updated_at)) : date('d-M-Y', strtotime($item->created_at)).'<br/>'. date('h:i A', strtotime($item->created_at))

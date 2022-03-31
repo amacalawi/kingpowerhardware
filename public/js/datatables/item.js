@@ -10,7 +10,11 @@
     item.prototype.load_contents = function(track_page) 
     {   
         var keywords = '?keywords=' + $('#items-listing #keywords').val() + '&perPage=' + $('#items-listing #perPage').val();
-        var urls = base_url + 'auth/items/listing/all-active';
+        if (segment == 'inactive') {
+            var urls = base_url + 'auth/items/listing/all-inactive';
+        } else {
+            var urls = base_url + 'auth/items/listing/all-active';
+        }
         var me = $(this);
         var $portlet = $('#datatable-result');
 
@@ -65,6 +69,37 @@
         });
     },
 
+
+    item.prototype.datatables = function()
+    {
+        Dropzone.autoDiscover = false;
+        var accept = ".csv";
+
+        $('#import-item-dropzone').dropzone({
+            acceptedFiles: accept,
+            maxFilesize: 209715200,
+            timeout: 0,
+            init: function () {
+            this.on("processing", function(file) {
+                this.options.url = base_url + 'auth/items/listing/import';
+                console.log(this.options.url);
+            }).on("queuecomplete", function (file, response) {
+                // console.log(response);
+            }).on("success", function (file, response) {
+                console.log(response);
+                var data = $.parseJSON(response);
+                if (data.message == 'success') {
+                    $.item.load_contents(1);
+                }
+            }).on("totaluploadprogress", function (progress) {
+                var progressElement = $("[data-dz-uploadprogress]");
+                progressElement.width(progress + '%');
+                progressElement.find('.progress-text').text(progress + '%');
+            });
+            this.on("error", function(file){if (!file.accepted) this.removeFile(file);});            
+            }
+        });
+    },
 
     item.prototype.init = function()
     {   
@@ -235,6 +270,7 @@
                             '<th class="text-center">Total Quantity</th>' +
                             '<th class="text-center">UOM</th>' +
                             '<th class="text-center">SRP</th>' +
+                            '<th class="text-center">SRP2</th>' +
                             '<th class="text-center">Last Modified</th>' +
                             '</tr>' +
                             '</thead>' +
@@ -246,6 +282,7 @@
                             '<td class="text-center">' + response[k].quantity + '</td>' +
                             '<td class="text-center">' + response[k].uom + '</td>' +
                             '<td class="text-center">' + response[k].srp + '</td>' +
+                            '<td class="text-center">' + response[k].srp2 + '</td>' +
                             '<td class="text-center">' + response[k].modified_at + '</td>' +
                             '</tr>' +
                             '</tbody>' +
@@ -481,4 +518,5 @@
 function($) {
     "use strict";
     $.item.init();
+    $.item.datatables();
 }(window.jQuery);

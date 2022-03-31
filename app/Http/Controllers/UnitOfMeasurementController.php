@@ -29,15 +29,15 @@ class UnitOfMeasurementController extends Controller
     public function index(Request $request)
     {   
         // $this->is_permitted(1);    
-        // $menus = $this->load_menus();
-        return view('modules/components/unit-of-measurements/manage');
+        $menus = $this->load_menus();
+        return view('modules/components/unit-of-measurements/manage')->with(compact('menus'));
     }
 
     public function inactive(Request $request)
     {       
         // // $this->is_permitted(1);    
-        // // $menus = $this->load_menus();
-        return view('modules/components/unit-of-measurements/manage-inactive');
+        $menus = $this->load_menus();
+        return view('modules/components/unit-of-measurements/manage-inactive')->with(compact('menus'));
     }
 
     public function store(Request $request)

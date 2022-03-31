@@ -197,15 +197,9 @@
         $.purchase_order.load_contents(1);
         $.purchase_order.load_purchase_order_contents(1, $('#purchase_order_id').val());
 
-        $("#date_received").daterangepicker({
-                locale: {
-                        format: 'DD-MMM-YYYY',
-                },
-                singleDatePicker: true,
-                autoClose: true,
-                showShortcuts: false
-            }
-        );
+        $("#date_received").flatpickr({
+            dateFormat: "d-M-Y"
+        });
 
         /*
         | ---------------------------------

@@ -11,6 +11,7 @@ use App\Http\Controllers\PaymentTermsController;
 use App\Http\Controllers\PurchaseOrderTypeController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\InventoryAdjustmentController;
+use App\Http\Controllers\TransferItemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -92,6 +93,7 @@ Route::prefix('auth')->group(function () {
             Route::post('store',[ItemController::class, 'store']);
             Route::put('update/{id?}',[ItemController::class, 'update']);
             Route::get('export',[ItemController::class, 'export']);
+            Route::post('import',[ItemController::class, 'import']);
             Route::put('remove/{id?}',[ItemController::class, 'remove']);
             Route::get('generate-item-code',[ItemController::class, 'generate_item_code']);
             Route::get('get-all-inventory/{id?}',[ItemController::class, 'get_all_inventory']);
@@ -106,6 +108,23 @@ Route::prefix('auth')->group(function () {
             Route::get('all-active',[InventoryAdjustmentController::class, 'all_active']);
             Route::post('store',[InventoryAdjustmentController::class, 'store']);
             Route::get('get-item-info/{item?}/{branch?}',[InventoryAdjustmentController::class, 'get_item_info']);
+        });
+
+        Route::prefix('transfer-items')->group(function () {
+            Route::get('',[TransferItemController::class, 'index']);
+            Route::get('all-active',[TransferItemController::class, 'all_active']);
+            Route::post('store',[TransferItemController::class, 'store']);
+            Route::put('update/{id?}',[TransferItemController::class, 'update']);
+            Route::get('generate-trans-no',[TransferItemController::class, 'generate_trans_no']);
+            Route::get('all-active-lines',[TransferItemController::class, 'all_active_lines']);
+            Route::get('find/{id?}',[TransferItemController::class, 'find']);
+            Route::get('get-item-info/{item?}/{branch?}',[TransferItemController::class, 'get_item_info']);
+            Route::post('store-line-item/{id?}',[TransferItemController::class, 'store_line_item']);
+            Route::put('remove-line-item/{id?}',[TransferItemController::class, 'remove_line_item']);
+            Route::put('update-line-item/{id?}',[TransferItemController::class, 'update_line_item']);
+            Route::get('find-line-item/{id?}',[TransferItemController::class, 'find_line_item']);
+            Route::get('find-line/{id?}',[TransferItemController::class, 'find_line']);
+            Route::post('post-line-item/{id?}',[TransferItemController::class, 'post_line_item']);
         });
     });
 

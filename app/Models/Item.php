@@ -39,7 +39,7 @@ class Item extends Model
         $items[] = array('' => 'select an item');
         foreach ($itemz as $item) {
             $items[] = array(
-                $item->id => $item->name
+                $item->id => $item->code. ' - ' .$item->name
             );
         }
 
