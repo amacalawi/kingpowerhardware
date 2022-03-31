@@ -243,7 +243,7 @@
         $.delivery.load_contents(1);
         $.delivery.load_delivery_contents(1, $('#delivery_id').val());
         
-        $("#date_received").flatpickr({
+        $("#date_delivered").flatpickr({
             dateFormat: "d-M-Y"
         });
 
