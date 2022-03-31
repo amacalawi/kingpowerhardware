@@ -22,13 +22,13 @@
                             <div class="col-xl-6">
                                 {{ Form::label('transaction', 'Transaction', ['class' => 'required fs-6 fw-bold mb-2']) }}
                                 {{
-                                    Form::select('transaction', $withdrawalTrans, '', ['data-control' => 'select2', 'data-placeholder' => 'select a transaction', 'data-dropdown-parent' => '#itemWithdrawalModal', 'class' => 'form-select form-select-solid fw-bolder'])
+                                    Form::select('transaction', $withdrawalTrans, '', ['data-control' => 'select2', 'data-placeholder' => 'select a transaction', 'data-dropdown-parent' => '#itemWithdrawalModal', 'id' => 'transaction', 'class' => 'form-select form-select-solid fw-bolder'])
                                 }}
                             </div>
                             <div class="col-xl-6">
                                 {{ Form::label('branch_id', 'Branch', ['class' => 'required fs-6 fw-bold mb-2']) }}
                                 {{
-                                    Form::select('branch_id', $branches, '', ['data-control' => 'select2', 'data-placeholder' => 'select a branch', 'data-dropdown-parent' => '#itemWithdrawalModal', 'class' => 'form-select form-select-solid fw-bolder'])
+                                    Form::select('branch_id', $branches, '', ['data-control' => 'select2', 'data-placeholder' => 'select a branch', 'data-dropdown-parent' => '#itemWithdrawalModal', 'id' => 'branch_id', 'class' => 'form-select form-select-solid fw-bolder'])
                                 }}
                             </div>
                         </div>
@@ -36,7 +36,7 @@
                             <div class="col-xl-12">
                                 {{ Form::label('transfer_to', 'Transfer To', ['class' => 'required fs-6 fw-bold mb-2']) }}
                                 {{
-                                    Form::select('transfer_to', $branches, '', ['data-control' => 'select2', 'data-placeholder' => 'select a branch', 'data-dropdown-parent' => '#itemWithdrawalModal', 'class' => 'form-select form-select-solid fw-bolder'])
+                                    Form::select('transfer_to', $branches, '', ['data-control' => 'select2', 'data-placeholder' => 'select a transfer to', 'data-dropdown-parent' => '#itemWithdrawalModal', 'id' => 'transfer_to', 'class' => 'form-select form-select-solid fw-bolder'])
                                 }}
                             </div>
                         </div>
@@ -44,13 +44,13 @@
                             <div class="col-xl-6">
                                 {{ Form::label('issued_by', 'Issued By', ['class' => 'required fs-6 fw-bold mb-2']) }}
                                 {{
-                                    Form::select('issued_by', $users, '', ['data-control' => 'select2', 'data-placeholder' => 'select a user', 'data-dropdown-parent' => '#itemWithdrawalModal', 'class' => 'form-select form-select-solid fw-bolder'])
+                                    Form::select('issued_by', $users, '', ['data-control' => 'select2', 'data-placeholder' => 'select a user', 'data-dropdown-parent' => '#itemWithdrawalModal', 'id' => 'issued_by', 'class' => 'form-select form-select-solid fw-bolder'])
                                 }}
                             </div>
                             <div class="col-xl-6">
                                 {{ Form::label('received_by', 'Received By', ['class' => 'required fs-6 fw-bold mb-2']) }}
                                 {{
-                                    Form::select('received_by', $users, '', ['data-control' => 'select2', 'data-placeholder' => 'select a user', 'data-dropdown-parent' => '#itemWithdrawalModal', 'class' => 'form-select form-select-solid fw-bolder'])
+                                    Form::select('received_by', $users, '', ['data-control' => 'select2', 'data-placeholder' => 'select a user', 'data-dropdown-parent' => '#itemWithdrawalModal', 'id' => 'received_by', 'class' => 'form-select form-select-solid fw-bolder'])
                                 }}
                             </div>
                         </div>

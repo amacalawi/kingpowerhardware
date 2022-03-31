@@ -1,19 +1,19 @@
 !function($) {
     "use strict";
 
-    var delivery = function() {
+    var transfer_item = function() {
         this.$body = $("body");
     };
 
     var track_page = 1; 
-    var t, n;
-    var o2, n2, r2, t2;
+    var t, n, itemValidation = 0;
+    var o2, n2, r2, t2, detailValidation = 0;;
     var t3, n3, z3, postingValidation = 0;
 
-    delivery.prototype.load_contents = function(track_page) 
+    transfer_item.prototype.load_contents = function(track_page) 
     {   
-        var keywords = '?keywords=' + $('#delivery #keywords').val() + '&perPage=' + $('#delivery #perPage').val();
-        var urls = base_url + 'auth/delivery/all-active';
+        var keywords = '?keywords=' + $('#items-transfer-items #keywords').val() + '&perPage=' + $('#items-transfer-items #perPage').val();
+        var urls = base_url + 'auth/items/transfer-items/all-active';
         var me = $(this);
         var $portlet = $('#datatable-result');
 
@@ -39,10 +39,10 @@
         });
     },
 
-    delivery.prototype.load_delivery_contents = function(track_page, deliveryID) 
+    transfer_item.prototype.load_transfer_item_contents = function(track_page, transfer_itemID) 
     {   
-        var keywords = '?id='+ deliveryID + '&keywords=' + $('#deliveryModal .keywords').val() + '&perPage=7';
-        var urls = base_url + 'auth/delivery/all-active-lines';
+        var keywords = '?id='+ transfer_itemID + '&keywords=' + $('#transferItemModal .keywords').val() + '&perPage=7';
+        var urls = base_url + 'auth/items/transfer-items/all-active-lines';
         var me = $(this);
         var $portlet = $('#datatable-lines-result');
 
@@ -68,185 +68,90 @@
         });
     },
 
-    delivery.prototype.truncate = function(num) {
+    transfer_item.prototype.truncate = function(num) {
         var with2Decimals = num.toString().match(/^-?\d+(?:\.\d{0,2})?/)[0]
         return with2Decimals
     },
 
-    delivery.prototype.compute = function(form) {
+    transfer_item.prototype.compute = function(form) {
         var qty = form.find('#qty');
         var total_amount = form.find('#total_amountx');
-        var disc1 = form.find('#disc1');
-        var disc2 = form.find('#disc2');
-        var srp = (form.find('#srp_special').val() != '') ? form.find('#srp_special').val() : form.find('#srp').val();
-        var plus = form.find('#plus');
+        var srp = form.find('#srp').val();
         var totalAmt = 0;
         if (qty.val() != '') {
-            if (disc1.val() != '') {
-                var disc1x = parseFloat(disc1.val() / 100);
-                console.log(disc1x);
-                srp = parseFloat(srp) - parseFloat(parseFloat(srp) * parseFloat(disc1x)); 
-            }
-            if (disc2.val() != '') {
-                var disc2 = parseFloat(disc2.val() / 100);
-                console.log(disc2);
-                srp = parseFloat(srp) - parseFloat(parseFloat(srp) * parseFloat(disc2)); 
-            }
-            if (plus.val() != '') {
-                var plusx = parseFloat(plus.val() / 100);
-                console.log(plusx);
-                srp = parseFloat(parseFloat(srp) * parseFloat(plusx)) + parseFloat(srp); 
-            }
             totalAmt = parseFloat(srp) * parseFloat(qty.val());
         } else {
             totalAmt = 0;
         }
-        total_amount.val($.delivery.truncate(totalAmt));
+        total_amount.val($.transfer_item.truncate(totalAmt));
     },
 
-    delivery.prototype.posting_validation = function()
+    transfer_item.prototype.posting_validation = function()
     {   
-        z3  = document.querySelector("#deliveryPostingForm");
-        t3 = document.querySelector("#deliveryPostingModalSubmit");
+        z3  = document.querySelector("#transferItemPostingForm");
+        t3 = document.querySelector("#transferItemPostingModalSubmit");
         n3 = FormValidation.formValidation(z3, {
             fields: {
-                date_delivered: { 
-                    validators: { 
-                        notEmpty: { 
-                            message: "Date Delivered is required" 
-                        }
-                    } 
-                },
                 qty_to_post: { 
                     validators: { 
                         notEmpty: { 
-                            message: "Quantity is required" 
+                            message: "quantity is required" 
                         }
                     } 
-                }
+                },
+                date_recieved: { validators: { notEmpty: { message: "date received is required" } } },
             },
             plugins: { trigger: new FormValidation.plugins.Trigger(), bootstrap: new FormValidation.plugins.Bootstrap5({ rowSelector: ".fv-row", eleInvalidClass: "", eleValidClass: "" }) },
         });
     },
 
-    delivery.prototype.item_detail_validation = function()
+    transfer_item.prototype.transfer_item_detail_validation = function()
     {
-        t = document.querySelector("#deliveryLineForm .add-item-btn");
-        n = FormValidation.formValidation(document.querySelector("#deliveryLineForm"), {
+        t = document.querySelector("#transferItemLineForm .add-item-btn");
+        n = FormValidation.formValidation(document.querySelector("#transferItemLineForm"), {
             fields: {
-                plus: { 
-                    validators: { 
-                        lessThan: { 
-                            max: 100,
-                            message: "The maximum plus value is 100" 
-                        } 
-                    } 
-                },
-                disc1: { 
-                    validators: { 
-                        lessThan: { 
-                            max: 100,
-                            message: "The maximum discount 1 value is 100" 
-                        } 
-                    } 
-                },
-                disc2: { 
-                    validators: { 
-                        lessThan: { 
-                            max: 100,
-                            message: "The maximum discount 2 value is 100" 
-                        } 
-                    } 
-                },
                 item_id: { validators: { notEmpty: { message: "Item is required" } } },
+                uom_id: { validators: { notEmpty: { message: "UOM is required" } } },
                 qty: { validators: { notEmpty: { message: "Quantity is required" } } }
             },
             plugins: { trigger: new FormValidation.plugins.Trigger(), bootstrap: new FormValidation.plugins.Bootstrap5({ rowSelector: ".fv-row", eleInvalidClass: "", eleValidClass: "" }) },
         });
     },
 
-    delivery.prototype.delivery_detail_validation = function()
+    transfer_item.prototype.transfer_detail_validation = function()
     {
         o2 = document.querySelector("#prev-next-btn-holder");
         t2 = o2.querySelector("#next-btn");
-        r2 = document.querySelector("#deliveryForm");
-        n2 = FormValidation.formValidation(document.querySelector("#deliveryForm"), {
+        r2 = document.querySelector("#transferItemForm");
+        n2 = FormValidation.formValidation(document.querySelector("#transferItemForm"), {
             fields: {
-                branch_id: { validators: { notEmpty: { message: "Branch is required" } } },
-                customer_id: { validators: { notEmpty: { message: "Customer is required" } } },
-                agent_id: { validators: { notEmpty: { message: "Agent is required" } } },
-                payment_terms_id: { validators: { notEmpty: { message: "Payment Terms is required" } } },
+                transfer_from: { validators: { notEmpty: { message: "transfer from is required" } } },
+                transfer_to: { validators: { notEmpty: { message: "transfer to is required" } } },
+                remarks: { validators: { notEmpty: { message: "remarks is required" } } },
             },
             plugins: { trigger: new FormValidation.plugins.Trigger(), bootstrap: new FormValidation.plugins.Bootstrap5({ rowSelector: ".fv-row", eleInvalidClass: "", eleValidClass: "" }) },
         });
-        $(r2.querySelector('[name="branch_id"]')).on("change", function () {
-            n2.revalidateField("branch_id");
-            if ($('#delivery_id').val() !== '') {
-                $.ajax({
-                    type: 'PUT',
-                    url: base_url + 'auth/delivery/update/' + $('#delivery_id').val(),
-                    data: $('#deliveryForm').serialize(),
-                    success: function(response) {
-                        var data = $.parseJSON(response); 
-                    },
-                });
-            }
+        $(r2.querySelector('[name="transfer_from"]')).on("change", function () {
+            n2.revalidateField("transfer_from");
         });
-        $(r2.querySelector('[name="customer_id"]')).on("change", function () {
-            n2.revalidateField("customer_id");
-            if ($('#delivery_id').val() !== '') {
-                $.ajax({
-                    type: 'PUT',
-                    url: base_url + 'auth/delivery/update/' + $('#delivery_id').val(),
-                    data: $('#deliveryForm').serialize(),
-                    success: function(response) {
-                        var data = $.parseJSON(response); 
-                    },
-                });
-            }
-        });
-        $(r2.querySelector('[name="agent_id"]')).on("change", function () {
-            n2.revalidateField("agent_id");
-            if ($('#delivery_id').val() !== '') {
-                $.ajax({
-                    type: 'PUT',
-                    url: base_url + 'auth/delivery/update/' + $('#delivery_id').val(),
-                    data: $('#deliveryForm').serialize(),
-                    success: function(response) {
-                        var data = $.parseJSON(response); 
-                    },
-                });
-            }
-        });
-        $(r2.querySelector('[name="payment_terms_id"]')).on("change", function () {
-            n2.revalidateField("payment_terms_id");
-            if ($('#delivery_id').val() !== '') {
-                $.ajax({
-                    type: 'PUT',
-                    url: base_url + 'auth/delivery/update/' + $('#delivery_id').val(),
-                    data: $('#deliveryForm').serialize(),
-                    success: function(response) {
-                        var data = $.parseJSON(response); 
-                    },
-                });
-            }
+        $(r2.querySelector('[name="transfer_to"]')).on("change", function () {
+            n2.revalidateField("transfer_to");
         });
     },
 
-    delivery.prototype.init = function()
+    transfer_item.prototype.init = function()
     {   
         /*
         | ---------------------------------
         | # load initial content
         | ---------------------------------
         */
-        $.delivery.load_contents(1);
-        $.delivery.load_delivery_contents(1, $('#delivery_id').val());
-        
+        $.transfer_item.load_contents(1);
+        $.transfer_item.load_transfer_item_contents(1, $('#transfer_item_id').val());
+
         $("#date_received").flatpickr({
             dateFormat: "d-M-Y"
         });
-
         /*
         | ---------------------------------
         | # numeric text
@@ -293,16 +198,16 @@
         | ---------------------------------
         */
         this.$body.on('keyup', '#keywords', function (e) {
-            $.delivery.load_contents(1);
+            $.transfer_item.load_contents(1);
         });
         /*
         | ---------------------------------
-        | # when deliveryModal keywords onkeyup
+        | # when transferItemModal keywords onkeyup
         | ---------------------------------
         */
-        this.$body.on('keyup', '#deliveryModal .keywords', function (e) {
+        this.$body.on('keyup', '#transferItemModal .keywords', function (e) {
             var modal = $(this).closest('.modal');
-            $.delivery.load_delivery_contents(1, modal.find('#delivery_id').val());
+            $.transfer_item.load_transfer_item_contents(1, modal.find('#transfer_item_id').val());
         });
 
         /*
@@ -310,9 +215,9 @@
         | # when modal is reset
         | ---------------------------------
         */
-        this.$body.on('hidden.bs.modal', '#deliveryModal', function (e) {
+        this.$body.on('hidden.bs.modal', '#transferItemModal', function (e) {
             var modal = $(this);
-            modal.find('.modal-header h5').html('New delivery');
+            modal.find('.modal-header h5').html('New Transfer Item');
             modal.find('input, textarea').val('');
             modal.find('select').select2().val('').trigger('change');
             modal.find('#next-btn').removeClass('hidden');
@@ -321,16 +226,16 @@
             modal.find('div[data-kt-stepper-element="content"][steps="2"]').removeClass('current');
             modal.find('div.stepper-nav div[steps="1"].stepper-item').addClass('current');
             modal.find('div.stepper-nav div[steps="2"].stepper-item').removeClass('current');
-            $.delivery.load_contents(1);
+            $.transfer_item.load_contents(1);
         });
         /*
         | ---------------------------------
         | # when modal is shown
         | ---------------------------------
         */
-        this.$body.on('shown.bs.modal', '#deliveryModal', function (e) {
+        this.$body.on('shown.bs.modal', '#transferItemModal', function (e) {
             var modal = $(this);
-            $.delivery.load_delivery_contents(1, modal.find('#delivery_id').val());
+            $.transfer_item.load_transfer_item_contents(1, modal.find('#transfer_item_id').val());
         });
 
         /*
@@ -338,26 +243,23 @@
         | # when edit button is clicked
         | ---------------------------------
         */
-        this.$body.on('click', '#deliveryTable .edit-btn', function (e) {
+        this.$body.on('click', '#transferItemTable .edit-btn', function (e) {
             var id     = $(this).closest('tr').attr('data-row-id');
-            var dr     = $(this).closest('tr').attr('data-row-dr');
+            var trans  = $(this).closest('tr').attr('data-row-trans');
             var total  = $(this).closest('tr').attr('data-row-amount');
-            var modal  = $('#deliveryModal');
-            var urlz   = base_url + 'auth/delivery/find/' + id;
+            var modal  = $('#transferItemModal');
+            var urlz   = base_url + 'auth/items/transfer-items/find/' + id;
             console.log(urlz);
-            modal.find('.modal-header h5').html('Edit delivery ('+dr+')');
+            modal.find('.modal-header h5').html('Edit Transfer Item ('+trans+')');
             $.ajax({
                 type: 'GET',
                 url: urlz,
                 success: function(response) {
                     console.log(response);
                     $.each(response.data, function (k, v) {
-                        if (k == 'branch_id') {
-                            modal.find('#deliveryForm select[name='+k+']').select2().val(v).prop('disabled', true).trigger('change');
-                        }
-                        modal.find('#deliveryForm input[name='+k+']').val(v);
-                        modal.find('#deliveryForm textarea[name='+k+']').val(v);
-                        modal.find('#deliveryForm select[name='+k+']').select2().val(v).trigger('change');
+                        modal.find('#transferItemForm textarea[name='+k+']').val(v);
+                        modal.find('#transferItemForm select[name='+k+']').select2().val(v).prop('disabled', true).trigger('change');
+                        modal.find('#transferItemForm input[name='+k+']').val(v);
                     });
                     modal.find('#next-btn').addClass('hidden');
                     modal.find('#prev-next-btn-holder button.prev').removeClass('hidden');
@@ -380,13 +282,13 @@
         | # when edit button is clicked
         | ---------------------------------
         */
-        this.$body.on('click', '#deliveryTable .remove-btn', function (e) {
+        this.$body.on('click', '#transfer_itemTable .remove-btn', function (e) {
             var id     = $(this).closest('tr').attr('data-row-id');
             var code   = $(this).closest('tr').attr('data-row-code');
-            var urlz   = base_url + 'auth/components/deliverys/remove/' + id;
+            var urlz   = base_url + 'auth/components/items-transfer-itemss/remove/' + id;
             console.log(urlz);
             Swal.fire({
-                html: "Are you sure you? <br/>the delivery with code ("+ code +") will be removed.",
+                html: "Are you sure you? <br/>the transfer_item with code ("+ code +") will be removed.",
                 icon: "warning",
                 showCancelButton: !0,
                 buttonsStyling: !1,
@@ -405,7 +307,7 @@
                             Swal.fire({ title: data.title, text: data.text, icon: data.type, buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" } }).then(
                                 function (e) {
                                     e.isConfirmed && ((t.disabled = !1));
-                                    $.delivery.load_contents(1);
+                                    $.transfer_item.load_contents(1);
                                 }
                             );
                         },
@@ -425,7 +327,7 @@
         | ---------------------------------
         */
         this.$body.on('change', '#perPage', function (e) {
-            $.delivery.load_contents(1);
+            $.transfer_item.load_contents(1);
         });
         
         /*
@@ -436,20 +338,20 @@
         this.$body.on('click', '.pagination li:not([class="disabled"],[class="active"])', function (e) {
             var page  = $(this).attr('p');   
             if (page > 0) {
-                $.delivery.load_contents(page);
+                $.transfer_item.load_contents(page);
             }
         });
 
         /*
         | ---------------------------------
-        | # when delivery paginate is clicked
+        | # when transfer_item paginate is clicked
         | ---------------------------------
         */
-        this.$body.on('click', '#deliveryModal .pagination li:not([class="disabled"],[class="active"])', function (e) {
+        this.$body.on('click', '#transferItemModal .pagination li:not([class="disabled"],[class="active"])', function (e) {
             var page  = $(this).attr('p');   
-            var modal = $('#deliveryModal')
+            var modal = $('#transferItemModal')
             if (page > 0) {
-                $.delivery.load_delivery_contents(page, modal.find('#delivery_id').val());
+                $.transfer_item.load_transfer_item_contents(page, modal.find('#transfer_item_id').val());
             }
         });
         
@@ -477,24 +379,25 @@
         this.$body.on('click', '#next-btn', function (e) {
             e.preventDefault();
             var self = $(this);
+            var form = $('#transferItemForm');
             n2 &&
                 n2.validate().then(function (e) {
-                    if ("Valid" == e) {
-                        if ($('#delivery_id').val() == '') {
+                    if ("Valid" == e && detailValidation > 0) {
+                        if ($('#transfer_item_id').val() == '') {
                             (t2.setAttribute("data-kt-indicator", "on"),
                             (t2.disabled = !0),
                             setTimeout(function () {
                                 t2.removeAttribute("data-kt-indicator"),
                                 $.ajax({
-                                    type: $('#deliveryForm').attr('method'),
-                                    url: $('#deliveryForm').attr('action'),
-                                    data: $('#deliveryForm').serialize(),
+                                    type: form.attr('method'),
+                                    url: form.attr('action'),
+                                    data: form.serialize(),
                                     success: function(response) {
                                         var data = $.parseJSON(response); 
-                                        $('#delivery_doc_no').val(data.doc_no);
-                                        $('#branch_id').prop('disabled', true).select2().trigger('change');
-                                        $('#delivery_id').val(data.delivery_id);
-                                        $.delivery.load_delivery_contents(1, data.delivery_id);
+                                        $('#transfer_no').val(data.transfer_no);
+                                        $('#transfer_item_id').val(data.transfer_item_id);
+                                        $('#transfer_from, #transfer_to').prop('disabled', true).select2().trigger('change');
+                                        $.transfer_item.load_transfer_item_contents(1, data.transfer_item_id);
                                         t2.removeAttribute("data-kt-indicator");
                                         t2.disabled = !1;
                                         self.addClass('hidden');
@@ -507,12 +410,20 @@
                                 });
                             }, 2e3))
                         } else {
-                            self.addClass('hidden');
-                            $('#prev-next-btn-holder button.prev').removeClass('hidden');
-                            $('div[data-kt-stepper-element="content"][steps="1"]').removeClass('current');
-                            $('div[data-kt-stepper-element="content"][steps="2"]').addClass('current');
-                            $('div.stepper-nav div[steps="1"].stepper-item').removeClass('current');
-                            $('div.stepper-nav div[steps="2"].stepper-item').addClass('current');
+                            $.ajax({
+                                type: 'PUT',
+                                url: base_url + 'auth/items/transfer-items/update/' + $('#transfer_item_id').val(),
+                                data: form.serialize(),
+                                success: function(response) {
+                                    var data = $.parseJSON(response); 
+                                    self.addClass('hidden');
+                                    $('#prev-next-btn-holder button.prev').removeClass('hidden');
+                                    $('div[data-kt-stepper-element="content"][steps="1"]').removeClass('current');
+                                    $('div[data-kt-stepper-element="content"][steps="2"]').addClass('current');
+                                    $('div.stepper-nav div[steps="1"].stepper-item').removeClass('current');
+                                    $('div.stepper-nav div[steps="2"].stepper-item').addClass('current');
+                                },
+                            });
                         }
                     }
             });
@@ -526,16 +437,16 @@
         this.$body.on('change', '#branch_id', function (e) {
             var self = $(this);
             var modal = self.closest('.modal');
-            var urlz   = base_url + 'auth/delivery/get-delivery-doc-no/' + self.val();
+            var urlz   = base_url + 'auth/items/transfer-items/get-po-no/' + self.val();
             console.log(urlz);
-            if (modal.find('.modal-header h5').text() == 'New Delivery') {
+            if (modal.find('.modal-header h5').text() == 'New Purchase Order') {
                 if (self.val() > 0) {
                     $.ajax({
                         type: 'GET',
                         url: urlz,
                         success: function(response) {
                             console.log(response);
-                            modal.find('input[name="delivery_doc_no"]').val(response);
+                            modal.find('input[name="po_no"]').val(response);
                         },
                     });
                 }
@@ -547,10 +458,10 @@
         | # when customer is changed
         | ---------------------------------
         */
-        this.$body.on('change', '#customer_id', function (e) {
+        this.$body.on('change', '#supplier_id', function (e) {
             var self = $(this);
             var modal = self.closest('.modal');
-            var urlz   = base_url + 'auth/delivery/get-customer-info/' + self.val();
+            var urlz   = base_url + 'auth/items/transfer-items/get-supplier-info/' + self.val();
             console.log(urlz);
             if (self.val() > 0) {
                 $.ajax({
@@ -576,7 +487,7 @@
         this.$body.on('change', '#item_id', function (e) {
             var self = $(this);
             var modal = self.closest('.modal');
-            var urlz   = base_url + 'auth/delivery/get-item-srp/' + self.val() + '/' + modal.find("#branch_id").val();
+            var urlz   = base_url + 'auth/items/transfer-items/get-item-info/' + self.val() + '/' + modal.find("#transfer_from").val();
             console.log(urlz);
             if (self.val() > 0) {
                 $.ajax({
@@ -591,27 +502,95 @@
                         });
                     },
                 });
+                $.transfer_item.compute($('#transferItemLineForm'));
             }
         });
 
         /*
         | ---------------------------------
-        | # when deliveryLineForm onkeyup blur
+        | # when transfer_itemLineForm onkeyup blur
         | ---------------------------------
         */
-        this.$body.on('keyup', '#deliveryLineForm #qty, #deliveryLineForm #plus, #deliveryLineForm #disc1, #deliveryLineForm #disc2, #deliveryLineForm #srp_special', function (e) {
-            $.delivery.compute($('#deliveryLineForm'));
+        this.$body.on('change', '#transferItemLineForm #uom_id', function (e) {
+            $.transfer_item.compute($('#transferItemLineForm'));
         });
-        this.$body.on('blur', '#deliveryLineForm #qty, #deliveryLineForm #plus, #deliveryLineForm #disc1, #deliveryLineForm #disc2, #deliveryLineForm #srp_special', function (e) {
-            $.delivery.compute($('#deliveryLineForm'));
+        this.$body.on('keyup', '#transferItemLineForm #qty', function (e) {
+            var self = $(this);
+            var based_quantity = $('#based_quantity');
+            if (self.val() != '') {
+                if (parseFloat(self.val()) > parseFloat(based_quantity.val())) {
+                    itemValidation = 0;
+                    self.next().text('The quantity should not be higher than (inventory)');
+                } else {
+                    itemValidation = 1;
+                    self.next().text('');
+                }
+            } else {
+                itemValidation = 0;
+            }
+            $.transfer_item.compute($('#transferItemLineForm'));
         });
+        this.$body.on('blur', '#transferItemLineForm #qty', function (e) {
+            var self = $(this);
+            var based_quantity = $('#based_quantity');
+            if (self.val() != '') {
+                if (parseFloat(self.val()) > parseFloat(based_quantity.val())) {
+                    itemValidation = 0;
+                    self.next().text('The quantity should not be higher than (inventory)');
+                } else {
+                    itemValidation = 1;
+                    self.next().text('');
+                }
+            } else {
+                itemValidation = 0;
+            }
+            $.transfer_item.compute($('#transferItemLineForm'));
+        });
+
+        /*
+        | ---------------------------------
+        | # when transfer from and to on change
+        | ---------------------------------
+        */
+        this.$body.on('change', '#transfer_from', function (e) {
+            var self = $(this);
+            var trans = $('#transfer_to');
+            if (self.val() != '') {
+                if (self.val() == trans.val()) {
+                    detailValidation = 0;
+                    self.closest('.col-sm-6').find('.invalid-feedback').text('transfer from should not be equal to transfer to');
+                } else {
+                    detailValidation = 1;
+                    self.closest('.col-sm-6').find('.invalid-feedback').text('');
+                }
+            } else {
+                detailValidation = 0;
+            }
+            $.transfer_item.compute($('#transferItemLineForm'));
+        });
+        this.$body.on('change', '#transfer_to', function (e) {
+            var self = $(this);
+            var trans = $('#transfer_from');
+            if (self.val() != '') {
+                if (self.val() == trans.val()) {
+                    detailValidation = 0;
+                    self.closest('.col-sm-6').find('.invalid-feedback').text('transfer to should not be equal to transfer from');
+                } else {
+                    detailValidation = 1;
+                    self.closest('.col-sm-6').find('.invalid-feedback').text('');
+                }
+            } else {
+                detailValidation = 0;
+            }
+        });
+
 
         /*
         | ---------------------------------
         | # when add item button is clicked
         | ---------------------------------
         */
-        this.$body.on('click', '#deliveryLineForm .add-item-btn', function (e) {
+        this.$body.on('click', '#transferItemLineForm .add-item-btn', function (e) {
             e.preventDefault();
             var options = {
                 "closeButton": false,
@@ -630,14 +609,14 @@
                 "showMethod": "fadeIn",
                 "hideMethod": "fadeOut"
             };
-            var modal = $('#deliveryModal');
-            var keywords =  $('#delivery_id').val() + '?uom='+ $('#deliveryLineForm #uom').val() +'&srp='+ $('#deliveryLineForm #srp').val() + '&total_amount=' + $('#deliveryLineForm #total_amountx').val(); 
-            var $lineID = $('#deliveryLineForm').find('input[name="delivery_line_id"]').val();
-            var $url = ($lineID != '') ? base_url + 'auth/delivery/update-line-item/' + $lineID + '?uom='+ $('#deliveryLineForm #uom').val() +'&srp='+ $('#deliveryLineForm #srp').val() + '&total_amount=' + $('#deliveryLineForm #total_amountx').val() : $('#deliveryLineForm').attr('action') + '/' + keywords; 
+            var modal = $('#transferItemModal');
+            var keywords =  $('#transfer_item_id').val() + '?total_amount=' + $('#transferItemLineForm #total_amountx').val() + '&srp=' + $('#transferItemLineForm #srp').val(); 
+            var $lineID = $('#transferItemLineForm').find('input[name="transfer_item_line_id"]').val();
+            var $url = ($lineID != '') ? base_url + 'auth/items/transfer-items/update-line-item/' + $lineID + '?total_amount=' + $('#transferItemLineForm #total_amountx').val() + '&srp=' + $('#transferItemLineForm #srp').val() : $('#transferItemLineForm').attr('action') + '/' + keywords; 
             var $method = ($lineID != '') ? 'PUT' : 'POST';
             n &&
             n.validate().then(function (e) {
-                if ("Valid" == e) {
+                if ("Valid" == e && itemValidation > 0) {
                     (t.setAttribute("data-kt-indicator", "on"),
                     (t.disabled = !0),
                     setTimeout(function () {
@@ -646,15 +625,15 @@
                         $.ajax({
                             type: $method,
                             url: $url,
-                            data: $('#deliveryLineForm').serialize(),
+                            data: $('#transferItemLineForm').serialize(),
                             success: function(response) {
                                 var data = $.parseJSON(response); 
-                                $.delivery.load_delivery_contents(1, $('#delivery_id').val());
+                                $.transfer_item.load_transfer_item_contents(1, $('#transfer_item_id').val());
                                 t.removeAttribute("data-kt-indicator");
-                                $('#deliveryLineForm')[0].reset();
-                                $('#deliveryLineForm select').select2().val('').trigger('change');
+                                $('#transferItemLineForm')[0].reset();
+                                $('#transferItemLineForm select').select2().val('').trigger('change');
                                 t.disabled = !1;
-                                $('#deliveryModal').find('button.add-item-btn').html('<span class="indicator-label">' +
+                                $('#transferItemModal').find('button.add-item-btn').html('<span class="indicator-label">' +
                                 '<span class="svg-icon svg-icon-4 ms-1 me-0"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">' +
                                 '<rect fill="#000000" x="4" y="11" width="16" height="2" rx="1"/>' +
                                 '<rect fill="#000000" opacity="0.5" transform="translate(12.000000, 12.000000) rotate(-270.000000) translate(-12.000000, -12.000000) " x="4" y="11" width="16" height="2" rx="1"/>' +
@@ -673,23 +652,24 @@
 
         /*
         | ---------------------------------
-        | # when delivery line remove is clicked
+        | # when transfer_item line remove is clicked
         | ---------------------------------
         */
-        this.$body.on('click', '#deliveryLineTable .remove-btn', function (e) {
+        this.$body.on('click', '#transferItemLineTable .remove-btn', function (e) {
             var id     = $(this).closest('tr').attr('data-row-id');
             var item   = $(this).closest('tr').attr('data-row-item');
             var posted = $(this).closest('tr').attr('data-row-posted');
-            var urlz   = base_url + 'auth/delivery/remove-line-item/' + id;
-            var modal  = $('#deliveryModal');
+            var quantity = $(this).closest('tr').attr('data-row-qty');
+            var urlz   = base_url + 'auth/items/transfer-items/remove-line-item/' + id;
+            var modal  = $('#transferItemModal');
             console.log(urlz);
-            if (posted <= 0) {
+            if (quantity > posted) {
                 Swal.fire({
-                    html: "Are you sure you? <br/>the delivery line item ("+ item +") will be removed.",
+                    html: "Are you sure you? <br/>the remaining quantity from line item<br/>("+ item +")<br/>will be retracted.",
                     icon: "warning",
                     showCancelButton: !0,
                     buttonsStyling: !1,
-                    confirmButtonText: "Yes, remove it!",
+                    confirmButtonText: "Yes, retract it!",
                     cancelButtonText: "No, return",
                     customClass: { confirmButton: "btn btn-danger", cancelButton: "btn btn-active-light" },
                 }).then(function (t) {
@@ -705,7 +685,7 @@
                                     function (e) {
                                         e.isConfirmed && ((t.disabled = !1));
                                         modal.find('#totalAmount').text(data.total_amount);
-                                        $.delivery.load_delivery_contents(1, $('#delivery_id').val());
+                                        $.transfer_item.load_transfer_item_contents(1, $('#transfer_item_id').val());
                                     }
                                 );
                             },
@@ -727,16 +707,16 @@
 
         /*
         | ---------------------------------
-        | # when delivery line remove is clicked
+        | # when transfer_item line remove is clicked
         | ---------------------------------
         */
-        this.$body.on('click', '#deliveryLineTable .post-btn', function (e) {
+        this.$body.on('click', '#transferItemLineTable .post-btn', function (e) {
             var id     = $(this).closest('tr').attr('data-row-id');
             var item   = $(this).closest('tr').attr('data-row-item');
             var posted = $(this).closest('tr').attr('data-row-posted');
             var quantity = $(this).closest('tr').attr('data-row-qty');
-            var urlz   = base_url + 'auth/delivery/find-line-item/' + id;
-            var modal  = $('#deliveryPostingModal');
+            var urlz   = base_url + 'auth/items/transfer-items/find-line-item/' + id;
+            var modal  = $('#transferItemPostingModal');
             if (posted != quantity) {
                 $.ajax({
                     type: 'GET',
@@ -772,48 +752,52 @@
         | # when qty to post onkeyup
         | ---------------------------------
         */
-        this.$body.on('keyup', '#deliveryPostingModal #qty_to_post', function (e) {
+        this.$body.on('keyup', '#transferItemPostingModal #qty_to_post', function (e) {
             var self = $(this);
             var modal = $(this).closest('.modal');
-            var onHand = modal.find('input[name="available_qty"]');
+            var date_recieved = modal.find('input[name="date_received"]');
             var forPosting = modal.find('input[name="for_posting"]');
             if (self.val() != '') {
-                if (parseFloat(self.val()) > parseFloat(onHand.val())) {
-                    var value = self.val();
-                    self.val(value.slice(0, (parseFloat(onHand.length) + 1)));
-                    postingValidation = 0;
-                    self.next().text('There is no available stock on hand');
-                } else if (parseFloat(self.val()) > parseFloat(forPosting.val())) {
-                    var value = self.val();
-                    self.val(value.slice(0, (parseFloat(forPosting.length) + 1)));
+                if (parseFloat(self.val()) > parseFloat(forPosting.val())) {
                     postingValidation = 0;
                     self.next().text('The quantity should not be higher than (For Posting)');
                 } else {
-                    postingValidation = 1;
+                    if (date_recieved.val() != '') {
+                        postingValidation = 1;
+                    } else {
+                        postingValidation = 0;
+                    }
                     self.next().text('');
                 }
             } else {
                 postingValidation = 0;
             }
         });
-        this.$body.on('blur', '#deliveryPostingModal #qty_to_post', function (e) {
+        this.$body.on('blur', '#transferItemPostingModal #qty_to_post', function (e) {
             var self = $(this);
             var modal = $(this).closest('.modal');
-            var onHand = modal.find('input[name="available_qty"]');
+            var date_recieved = modal.find('input[name="date_received"]');
             var forPosting = modal.find('input[name="for_posting"]');
             if (self.val() != '') {
-                if (parseFloat(self.val()) > parseFloat(onHand.val())) {
-                    var value = self.val();
-                    postingValidation = 0;
-                    self.next().text('Theres no available stock on hand');
-                } else if (parseFloat(self.val()) > parseFloat(forPosting.val())) {
-                    var value = self.val();
+                if (parseFloat(self.val()) > parseFloat(forPosting.val())) {
                     postingValidation = 0;
                     self.next().text('The quantity should not be higher than (For Posting)');
                 } else {
-                    postingValidation = 1;
+                    if (date_recieved.val() != '') {
+                        postingValidation = 1;
+                    } else {
+                        postingValidation = 0;
+                    }
                     self.next().text('');
                 }
+            } else {
+                postingValidation = 0;
+            }
+        });
+        this.$body.on('blur', '#transferItemPostingModal #date_received', function (e) {
+            var self = $(this);
+            if (self.val() != '') {
+                postingValidation = 1;
             } else {
                 postingValidation = 0;
             }
@@ -821,10 +805,10 @@
 
         /*
         | ---------------------------------
-        | # when delivery posting modal is reset
+        | # when transfer_item posting modal is reset
         | ---------------------------------
         */
-        this.$body.on('hidden.bs.modal', '#deliveryPostingModal', function (e) {
+        this.$body.on('hidden.bs.modal', '#transferItemPostingModal', function (e) {
             var modal = $(this);
             modal.find('input, textarea').val('');
             modal.find('select').select2().val('').trigger('change');
@@ -835,11 +819,11 @@
         | # when post item button is clicked
         | ---------------------------------
         */
-        this.$body.on('click', '#deliveryPostingModal #deliveryPostingModalSubmit', function (e) {
+        this.$body.on('click', '#transferItemPostingModal #transferItemPostingModalSubmit', function (e) {
             e.preventDefault();
             var modal = $(this).closest('.modal');
-            var delivery_line_id = modal.find('input[name="delivery_line_id"]').val();
-            var delivery_id = modal.find('input[name="delivery_idx"]').val();
+            var transfer_item_line_id = modal.find('input[name="transfer_item_line_id"]').val();
+            var transfer_item_id = modal.find('input[name="transfer_item_idx"]').val();
             var options = {
                 "closeButton": false,
                 "debug": false,
@@ -864,16 +848,16 @@
                     (t3.disabled = !0),
                     setTimeout(function () {
                         t3.removeAttribute("data-kt-indicator"),
-                        console.log($('#deliveryPostingForm').attr('action') + '/' + delivery_line_id);
+                        console.log($('#transferItemPostingForm').attr('action') + '/' + transfer_item_line_id);
                         $.ajax({
-                            type: $('#deliveryPostingForm').attr('method'),
-                            url: $('#deliveryPostingForm').attr('action') + '/' + delivery_line_id,
-                            data: $('#deliveryPostingForm').serialize(),
+                            type: $('#transferItemPostingForm').attr('method'),
+                            url: $('#transferItemPostingForm').attr('action') + '/' + transfer_item_line_id,
+                            data: $('#transferItemPostingForm').serialize(),
                             success: function(response) {
                                 var data = $.parseJSON(response); 
-                                $.delivery.load_delivery_contents(1, delivery_id);
+                                $.transfer_item.load_transfer_item_contents(1, transfer_item_id);
                                 t.removeAttribute("data-kt-indicator");
-                                $('#deliveryPostingForm')[0].reset();
+                                $('#transferItemPostingForm')[0].reset();
                                 modal.modal('hide');
                                 t3.disabled = !1;
                                 toastr.success(data.text, data.title, options);
@@ -891,7 +875,7 @@
         */
         this.$body.on('click', '#preview-preparation-btn', function (e) {
             e.preventDefault();
-            var url = base_url + 'auth/delivery/preview?document=preparation&dr_no=' + $('#delivery_doc_no').val();
+            var url = base_url + 'auth/items/transfer-items/preview?document=preparation&dr_no=' + $('#transfer_item_doc_no').val();
             window.open(url, "_blank");
         });
 
@@ -902,7 +886,7 @@
         */
         this.$body.on('click', '#preview-posting-btn', function (e) {
             e.preventDefault();
-            var url = base_url + 'auth/delivery/preview?document=posting&dr_no=' + $('#delivery_doc_no').val();
+            var url = base_url + 'auth/items/transfer-items/preview?document=posting&dr_no=' + $('#transfer_item_doc_no').val();
             window.open(url, "_blank");
         });
 
@@ -911,10 +895,10 @@
         | # when edit item button is clicked
         | ---------------------------------
         */
-        this.$body.on('click', '#deliveryModal .edit-item-btn', function (e) {
+        this.$body.on('click', '#transferItemModal .edit-item-btn', function (e) {
             var id     = $(this).closest('tr').attr('data-row-id');
             var modal  = $(this).closest('.modal');
-            var urlz   = base_url + 'auth/delivery/find-line/' + id;
+            var urlz   = base_url + 'auth/items/transfer-items/find-line/' + id;
             console.log(urlz);
             var posted = $(this).closest('tr').attr('data-row-posted');
             if (posted <= 0) {
@@ -924,9 +908,9 @@
                     success: function(response) {
                         console.log(response);
                         $.each(response.data, function (k, v) {
-                            modal.find('#deliveryLineForm input[name='+k+']').val(v);
-                            modal.find('#deliveryLineForm textarea[name='+k+']').val(v);
-                            modal.find('#deliveryLineForm select[name='+k+']').select2().val(v).trigger('change');
+                            modal.find('#transferItemLineForm input[name='+k+']').val(v);
+                            modal.find('#transferItemLineForm textarea[name='+k+']').val(v);
+                            modal.find('#transferItemLineForm select[name='+k+']').select2().val(v).trigger('change');
                         });
                         modal.find('button.add-item-btn').html('<span class="indicator-label">' +
                         '<span class="svg-icon svg-icon-4 ms-1 me-0"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">' +
@@ -953,18 +937,41 @@
                 });
             }
         }); 
+
+        /*
+        | ---------------------------------
+        | # when transfer_item line remove is clicked
+        | ---------------------------------
+        */
+        this.$body.on('click', '.add-new-btn', function (e) {
+            var self   = $(this);
+            var urlz   = base_url + 'auth/items/transfer-items/generate-trans-no';
+            var modal  = $('#transferItemModal');
+            self.prop('disabled', true);
+            $.ajax({
+                type: 'GET',
+                url: urlz,
+                success: function(response) {
+                    modal.find('#transfer_no').val(response);
+                    modal.modal('show');
+                },
+                complete: function() {
+                    self.prop('disabled', false);
+                },
+            });
+        });
     }
 
-    //init delivery
-    $.delivery = new delivery, $.delivery.Constructor = delivery
+    //init transfer_item
+    $.transfer_item = new transfer_item, $.transfer_item.Constructor = transfer_item
 
 }(window.jQuery),
 
-//initializing delivery
+//initializing transfer_item
 function($) {
     "use strict";
-    $.delivery.item_detail_validation();
-    $.delivery.delivery_detail_validation();
-    $.delivery.posting_validation();
-    $.delivery.init();
+    $.transfer_item.transfer_detail_validation();
+    $.transfer_item.transfer_item_detail_validation();
+    $.transfer_item.posting_validation();
+    $.transfer_item.init();
 }(window.jQuery);

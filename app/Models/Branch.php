@@ -26,12 +26,16 @@ class Branch extends Model
         return $branches;
     }
 
-    public function all_branches_selectpicker($user)
+    public function all_branches_selectpicker($user = '')
     {	
-    	$branchez = self::whereIn('id', 
-            explode(',', trim((new User)->select(['assignment'])->where('id', $user)->first()->assignment))
-        )
-        ->where(['is_active' => 1])->orderBy('id', 'asc')->get();
+        if ($user == '') {
+            $branchez = self::where(['is_active' => 1])->orderBy('id', 'asc')->get();
+        } else {
+            $branchez = self::whereIn('id', 
+                explode(',', trim((new User)->select(['assignment'])->where('id', $user)->first()->assignment))
+            )
+            ->where(['is_active' => 1])->orderBy('id', 'asc')->get();
+        }
 
         $id = array();
         foreach ($branchez as $branch) {
