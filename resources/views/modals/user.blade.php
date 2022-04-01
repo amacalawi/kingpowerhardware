@@ -90,24 +90,18 @@
                         </div>
                         <div class="fv-row row mb-4">
                             <div class="col-xl-6">
-                                {{ Form::label('password', 'Password', ['class' => 'required fs-6 fw-bold mb-2']) }}
-                                {{ 
-                                    Form::text($name = 'password', $value = '', 
-                                    $attributes = array(
-                                        'id' => 'password',
-                                        'class' => 'form-control form-control-solid'
-                                    )) 
-                                }}
+                                <label for="password" class="w-100 required fs-6 fw-bold mb-2">Password 
+                                    <span class="pull-right"><i class="la la-eye"></i></span>
+                                </label>
+                                <input id="password" class="form-control form-control-solid" name="password" type="password" value="">
+                                <div class="fv-plugins-message-container invalid-feedback"></div>
                             </div>
                             <div class="col-xl-6">
-                                {{ Form::label('confirm_password', 'Confirm Password', ['class' => 'required fs-6 fw-bold mb-2']) }}
-                                {{ 
-                                    Form::text($name = 'confirm_password', $value = '', 
-                                    $attributes = array(
-                                        'id' => 'confirm_password',
-                                        'class' => 'form-control form-control-solid'
-                                    )) 
-                                }}
+                                <label for="password" class="w-100 required fs-6 fw-bold mb-2">Confirm Password 
+                                    <span class="pull-right"><i class="la la-eye"></i></span>
+                                </label>
+                                <input id="confirm_password" class="form-control form-control-solid" name="confirm_password" type="password" value="">
+                                <div class="fv-plugins-message-container invalid-feedback"></div>
                             </div>
                         </div>
                         

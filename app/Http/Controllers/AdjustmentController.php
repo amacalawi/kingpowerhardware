@@ -18,7 +18,7 @@ use DB;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\File;
 
-class InventoryAdjustmentController extends Controller
+class AdjustmentController extends Controller
 {   
     // use FlashMessages;
     private $models;

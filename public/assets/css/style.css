@@ -145,6 +145,14 @@ input[disabled="disabled"] {
     padding: 0.67rem 0.75rem;
 }
 
+.pull-right {
+    float: right !important;
+}
+
+label span i {
+    font-size: 1.5rem;
+}
+
 @media (min-width: 768px) {
     .me-pe-10 {
         padding-right: 2rem !important;

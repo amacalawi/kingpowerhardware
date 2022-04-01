@@ -10,8 +10,31 @@ var KTModalpurchase_order_typesAdd = (function () {
                 (z = r.querySelector("input[name='method']")),
                 (n = FormValidation.formValidation(r, {
                     fields: {
-                        code: { validators: { notEmpty: { message: "purchase order type code is required" } } },
-                        name: { validators: { notEmpty: { message: "purchase order type name is required" } } },
+                        name: { validators: { notEmpty: { message: "name is required" } } },
+                        type: { validators: { notEmpty: { message: "role is required" } } },
+                        assignment: { validators: { notEmpty: { message: "assignment is required" } } },
+                        username: { validators: { notEmpty: { message: "username is required" } } },
+                        email: { 
+                            validators: { 
+                                emailAddress: {
+                                    message: 'The value is not a valid email address',
+                                },
+                                notEmpty: { 
+                                    message: "email is required" 
+                                } 
+                            } 
+                        },
+                        password: { validators: { notEmpty: { message: "password is required" } } },
+                        confirm_password: { 
+                            validators: { 
+                                identical: {
+                                    compare: function () {
+                                        return r.querySelector('[name="password"]').value;
+                                    },
+                                    message: 'password does not matched',
+                                },
+                            } 
+                        },
                     },
                     plugins: { trigger: new FormValidation.plugins.Trigger(), bootstrap: new FormValidation.plugins.Bootstrap5({ rowSelector: ".fv-row", eleInvalidClass: "", eleValidClass: "" }) },
                 })),
