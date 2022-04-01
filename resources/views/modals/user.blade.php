@@ -62,7 +62,7 @@
                             <div class="col-xl-12">
                                 {{ Form::label('assignment', 'Assignment', ['class' => 'required fs-6 fw-bold mb-2']) }}
                                 {{
-                                    Form::select('assignment', $branches, '', ['data-control' => 'select2', 'data-placeholder' => 'select an assignment', 'data-dropdown-parent' => '#userModal', 'id' => 'assignment', 'multiple' => 'multiple', 'class' => 'form-select form-select-solid fw-bolder'])
+                                    Form::select('assignment[]', $branches, '', ['data-control' => 'select2', 'data-placeholder' => 'select an assignment', 'data-dropdown-parent' => '#userModal', 'id' => 'assignment', 'multiple' => 'multiple', 'class' => 'form-select form-select-solid fw-bolder'])
                                 }}
                             </div>
                         </div>
@@ -104,7 +104,21 @@
                                 <div class="fv-plugins-message-container invalid-feedback"></div>
                             </div>
                         </div>
-                        
+                        <div class="fv-row row mb-4">
+                            <div class="col-xl-6">
+                                {{ Form::label('secret_question_id', 'Secret Question', ['class' => 'required fs-6 fw-bold mb-2']) }}
+                                {{
+                                    Form::select('secret_question_id', $secrets, '', ['data-control' => 'select2', 'data-placeholder' => 'select a secret question', 'data-dropdown-parent' => '#userModal', 'id' => 'secret_question_id', 'class' => 'form-select form-select-solid fw-bolder'])
+                                }}
+                            </div>
+                            <div class="col-xl-6">
+                                <label for="secret_password" class="w-100 required fs-6 fw-bold mb-2">Secret Password 
+                                    <span class="pull-right"><i class="la la-eye"></i></span>
+                                </label>
+                                <input id="secret_password" class="form-control form-control-solid" name="secret_password" type="password" value="">
+                                <div class="fv-plugins-message-container invalid-feedback"></div>
+                            </div>
+                        </div>
 
                     </div>
                     <!--end::Scroll-->

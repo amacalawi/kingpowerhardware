@@ -21,7 +21,7 @@
                             </svg>
                         </span>
                         <!--end::Svg Icon-->
-                        <input id="keywords" type="text" data-kt-item-table-filter="search" class="form-control form-control-solid w-250px ps-15" placeholder="Search Purchase Order Type" />
+                        <input id="keywords" type="text" data-kt-item-table-filter="search" class="form-control form-control-solid w-250px ps-15" placeholder="Search keywords" />
                     </div>
                     <!--end::Search-->
                 </div>
@@ -66,6 +66,6 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/datatables/purchase-order-type.js') }}" type="text/javascript"></script>
-    <script src="{{ asset('js/forms/purchase-order-type.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('js/datatables/user.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('js/forms/user.js') }}" type="text/javascript"></script>
 @endpush
