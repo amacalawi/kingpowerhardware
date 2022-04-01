@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use Hash;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserRole;
 use App\Models\Role;
 use App\Models\Branch;
 use App\Models\AuditLog;
+use App\Models\SecretQuestion;
 use Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\File;
@@ -31,7 +34,8 @@ class UserController extends Controller
         $menus = $this->load_menus();
         $roles = (new Role)->all_roles_selectpicker();
         $branches = (new Branch)->all_branches_multiple_selectpicker();
-        return view('modules/components/users/manage')->with(compact('menus', 'roles', 'branches'));
+        $secrets = (new SecretQuestion)->all_secret_question_selectpicker();
+        return view('modules/components/users/manage')->with(compact('menus', 'roles', 'branches', 'secrets'));
     }
 
     public function inactive(Request $request)
@@ -47,16 +51,40 @@ class UserController extends Controller
         // $this->is_permitted(0);
         $timestamp = date('Y-m-d H:i:s');
 
-        $rows = User::where([
-            'code' => $request->code
+        $rows = User::with([
+            'role' =>  function($q) { 
+                $q->select(['user_id', 'role_id']); 
+            }
+        ])->where([
+            'email' => $request->email
         ])->count();
 
         if ($rows > 0) {
             $data = array(
+                'field' => 'email',
                 'title' => 'Oh snap!',
-                'text' => 'You cannot create a purchase order type with an existing code.',
+                'text' => 'You cannot create a user with an existing email.',
                 'type' => 'error',
-                'field' => 'code',
+                'class' => 'btn-danger'
+            );
+    
+            echo json_encode( $data ); exit();
+        }
+        
+        $rows = User::with([
+            'role' =>  function($q) { 
+                $q->select(['user_id', 'role_id']); 
+            }
+        ])->where([
+            'username' => $request->username
+        ])->count();
+
+        if ($rows > 0) {
+            $data = array(
+                'field' => 'username',
+                'title' => 'Oh snap!',
+                'text' => 'You cannot create a user with an username.',
+                'type' => 'error',
                 'class' => 'btn-danger'
             );
     
@@ -64,9 +92,21 @@ class UserController extends Controller
         }
 
         $user = User::create([
-            'code' => $request->code,
             'name' => $request->name,
-            'description' => $request->description,
+            'email' => $request->email,
+            'username' => $request->username,
+            'password' => $request->password,
+            'type' => (new Role)->where('id', $request->type)->first()->code,
+            'assignment' => implode(',',$request->assignment),
+            'secret_question_id' => $request->secret_question_id,
+            'secret_password' => Hash::make($request->secret_password),
+            'created_at' => $timestamp,
+            'created_by' => Auth::user()->id
+        ]);
+
+        $userRole = UserRole::create([
+            'user_id' => $user->id,
+            'role_id' => $request->type,
             'created_at' => $timestamp,
             'created_by' => Auth::user()->id
         ]);
@@ -75,11 +115,12 @@ class UserController extends Controller
             throw new NotFoundHttpException();
         }
 
-        $this->audit_logs('purchase_orders_types', $user->id, 'has inserted a new purchase order type.', User::find($user->id), $timestamp, Auth::user()->id);
+        $this->audit_logs('users', $user->id, 'has inserted a new user.', User::find($user->id), $timestamp, Auth::user()->id);
+        $this->audit_logs('users_roles', $userRole->id, 'has inserted a new user role.', UserRole::find($userRole->id), $timestamp, Auth::user()->id);
         
         $data = array(
             'title' => 'Well done!',
-            'text' => 'The purchase order type has been successfully stored.',
+            'text' => 'The user has been successfully saved.',
             'type' => 'success',
             'class' => 'btn-brand'
         );
@@ -95,10 +136,20 @@ class UserController extends Controller
             throw new NotFoundHttpException();
         }
 
+        $data = (object) array(
+            'id' => $user->id,
+            'name' => $user->name,
+            'type' => (new Role)->where('code', $user->type)->first()->id,
+            'assignment' => explode(',',$user->assignment),
+            'username' => $user->username,
+            'email' => $user->email,
+            'secret_question_id' => $user->secret_question_id
+        );
+
         return response()
         ->json([
             'status' => 'ok',
-            'data' => $user
+            'data' => $data
         ]);
     }
 
@@ -106,28 +157,141 @@ class UserController extends Controller
     {    
         // $this->is_permitted(2);
         $timestamp = date('Y-m-d H:i:s');
-        $user = User::find($id);
+        $rows = User::with([
+            'role' =>  function($q) { 
+                $q->select(['user_id', 'role_id']); 
+            }
+        ])
+        ->where('id', '!=', $id)
+        ->where([
+            'email' => $request->email
+        ])->count();
 
+        if ($rows > 0) {
+            $data = array(
+                'field' => 'email',
+                'title' => 'Oh snap!',
+                'text' => 'You cannot create a user with an existing email.',
+                'type' => 'error',
+                'class' => 'btn-danger'
+            );
+    
+            echo json_encode( $data ); exit();
+        }
+        
+        $rows = User::with([
+            'role' =>  function($q) { 
+                $q->select(['user_id', 'role_id']); 
+            }
+        ])
+        ->where('id', '!=', $id)
+        ->where([
+            'username' => $request->username
+        ])->count();
+        
+        $user = User::find($id);
+        
         if(!$user) {
             throw new NotFoundHttpException();
         }
 
-        $user->code = $request->code;
-        $user->name = $request->name;
-        $user->description = $request->description;
-        $user->updated_at = $timestamp;
-        $user->updated_by = Auth::user()->id;
+        $rows = User::where('id', '!=', $id)->where('email', $request->email)->count();    
 
-        if ($user->update()) {
-            $this->audit_logs('purchase_orders_types', $id, 'has modified a purchase order type.', User::find($id), $timestamp, Auth::user()->id);
+        if ($rows > 0) {
             $data = array(
-                'title' => 'Well done!',
-                'text' => 'The purchase order type has been successfully modified.',
-                'type' => 'success',
-                'class' => 'btn-brand'
+                'title' => 'Oh snap!',
+                'rows' => $rows,
+                'text' => 'The email is already in use.',
+                'type' => 'error',
+                'class' => 'btn-danger'
             );
+    
             echo json_encode( $data ); exit();
         }
+
+        $password = User::where('id', '=', $id)->pluck('password');
+        if ($password != $request->password) {
+            $secret_password = User::where('id', '=', $id)->pluck('secret_password');
+            if ($secret_password != $request->secret_password) {
+                User::where('id', '=', $id)
+                ->update([
+                    'username' => $request->username,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'assignment' => implode(',',$request->assignment),
+                    'password' => Hash::make($request->password),
+                    'type' => (new Role)->where('id', $request->type)->first()->code,
+                    'secret_question_id' => $request->secret_question_id,
+                    'secret_password' => Hash::make($request->secret_password),
+                    'updated_at' => $timestamp,
+                    'updated_by' => Auth::user()->id
+                ]);
+            } else {
+                User::where('id', '=', $id)
+                ->update([
+                    'username' => $request->username,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'assignment' => implode(',',$request->assignment),
+                    'password' => Hash::make($request->password),
+                    'type' => (new Role)->where('id', $request->type)->first()->code,
+                    'secret_question_id' => $request->secret_question_id,
+                    'updated_at' => $timestamp,
+                    'updated_by' => Auth::user()->id
+                ]);
+            }
+        } else {
+            $secret_password = User::where('id', '=', $id)->pluck('secret_password');
+            if ($secret_password != $request->secret_password) {
+                User::where('id', '=', $id)
+                ->update([
+                    'username' => $request->username,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'assignment' => implode(',',$request->assignment),
+                    'type' => (new Role)->where('id', $user->role->type)->pluck('name'),
+                    'secret_question_id' => $request->secret_question_id,
+                    'secret_password' => Hash::make($request->secret_password),
+                    'updated_at' => $timestamp,
+                    'updated_by' => Auth::user()->id
+                ]);
+            } else {
+                User::where('id', '=', $id)
+                ->update([
+                    'username' => $request->username,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'assignment' => implode(',',$request->assignment),
+                    'type' => (new Role)->where('id', $user->role->type)->pluck('name'),
+                    'secret_question_id' => $request->secret_question_id,
+                    'updated_at' => $timestamp,
+                    'updated_by' => Auth::user()->id
+                ]);
+            }
+        }
+
+        $this->audit_logs('users', $id, 'has modified a user.', User::find($id), $timestamp, Auth::user()->id);
+        
+        $user_role = UserRole::where('user_id', '=', $id)
+        ->update([
+            'user_id' => $user->id,
+            'role_id' => $request->type,
+            'updated_at' => $timestamp,
+            'updated_by' => Auth::user()->id
+        ]);
+        $user_role = UserRole::where('user_id', '=', $id)->get();
+        if ($user_role->count() > 0) {
+            $this->audit_logs('users_roles', $user_role->first()->id, 'has modified a user role.', UserRole::find($user_role->first()->id), $timestamp, Auth::user()->id);
+        }
+
+        $data = array(
+            'title' => 'Well done!',
+            'text' => 'The user has been successfully updated.',
+            'type' => 'success',
+            'class' => 'btn-brand'
+        );
+
+        echo json_encode( $data ); exit();
     }
 
     public function all_active(Request $request)
@@ -148,7 +312,7 @@ class UserController extends Controller
         $msg = "";
         
         $msg .= '<div class="table-responsive">';
-        $msg .= '<table class="table align-middle table-row-dashed fs-6 gy-5" id="purchaseOrderTypeTable">';
+        $msg .= '<table class="table align-middle table-row-dashed fs-6 gy-5" id="userTable">';
         $msg .= '<thead>';
             $msg .= '<tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">';
             $msg .= '<th class="w-10px pe-2">';
@@ -299,6 +463,7 @@ class UserController extends Controller
     {
         if (!empty($keywords)) {
             $res = User::select([
+                'users.id',
                 'users.name',
                 'users.email',
                 'users.username',
@@ -320,6 +485,7 @@ class UserController extends Controller
             ->get();
         } else {
             $res = User::select([
+                'users.id',
                 'users.name',
                 'users.email',
                 'users.username',
@@ -352,6 +518,7 @@ class UserController extends Controller
     {
         if (!empty($keywords)) {
             $res = User::select([
+                'users.id',
                 'users.name',
                 'users.email',
                 'users.username',
@@ -371,6 +538,7 @@ class UserController extends Controller
             ->count();
         } else {
             $res = User::select([
+                'users.id',
                 'users.name',
                 'users.email',
                 'users.username',
@@ -405,7 +573,7 @@ class UserController extends Controller
         $msg = "";
         
         $msg .= '<div class="table-responsive">';
-        $msg .= '<table class="table align-middle table-row-dashed fs-6 gy-5" id="purchaseOrderTypeTable">';
+        $msg .= '<table class="table align-middle table-row-dashed fs-6 gy-5" id="userTable">';
         $msg .= '<thead>';
             $msg .= '<tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">';
             $msg .= '<th class="w-10px pe-2">';
@@ -439,17 +607,19 @@ class UserController extends Controller
         {
             foreach ($query as $row)
             {   
-                $msg .= '<tr data-row-id="'.$row->id.'" data-row-code="'.$row->code.'">';
+                $msg .= '<tr data-row-id="'.$row->id.'" data-row-user="'.$row->username.'">';
                 $msg .= '<td>';
                 $msg .= '<div class="form-check form-check-sm form-check-custom form-check-solid">';
                 $msg .= '<input class="form-check-input" type="checkbox" value="'.$row->id.'" />';
                 $msg .= '</div>';
                 $msg .= '</td>';
                 $msg .= '<td>';
-                $msg .= '<a href="#" class="text-gray-800 text-hover-primary mb-1">'.$row->code.'</a>';
+                $msg .= '<a href="#" class="text-gray-800 text-hover-primary mb-1">'.$row->name.'</a>';
                 $msg .= '</td>';
-                $msg .= '<td>'.$row->name.'</td>';
-                $msg .= '<td>'.$row->description.'</td>';
+                $msg .= '<td>'.$row->email.'</td>';
+                $msg .= '<td>'.$row->username.'</td>';
+                $msg .= '<td>'.$row->type.'</td>';
+                $msg .= '<td>'.$row->assignment.'</td>';
                 $msg .= '<td class="text-center">'.$row->modified_at.'</td>';
                 $msg .= '<td class="text-center">';
                 $msg .= '<a href="javascript:;" title="modify this" class="restore-btn btn btn-sm btn-light btn-active-light-info">';
@@ -588,13 +758,14 @@ class UserController extends Controller
 
     public function export(Request $request)
     {   
-        $fileName = 'purchase_order_type_'.time().'.csv';
+        $fileName = 'users_'.time().'.csv';
 
-        $purchase_order_type = User::select([
-            'users.id', 
-            'users.code', 
+        $users = User::select([
             'users.name', 
-            'users.description'
+            'users.email', 
+            'users.type',
+            'users.username',
+            'users.assignment',
         ])
         ->where('users.is_active', 1)
         ->orderBy('users.id', 'asc')
@@ -608,17 +779,23 @@ class UserController extends Controller
             "Expires"             => "0"
         );
 
-        $columns = array('Code', 'Name', 'Description');
-
-        $callback = function() use($purchase_order_type, $columns) {
+        $columns = array('Name', 'Email', 'Type', 'Username', 'Assignment');
+        $callback = function() use($users, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
 
-            foreach ($purchase_order_type as $user) {
-                $row['code']      = $user->code;
+            foreach ($users as $user) {
+                // $assignment = array();
+                // $assignments = explode(',', $user->assignment);
+                // foreach ($assignments as $assignmentx) {
+                //     $assignment[] = (new Branch)->where(['id', $assignmentx])->first()->name;
+                // }
                 $row['name']      = $user->name;
-                $row['desc']      = $user->description;
-                fputcsv($file, array($row['code'], $row['name'], $row['desc']));
+                $row['email']     = $user->email;
+                $row['type']      = $user->type;
+                $row['username']  = $user->username;
+                $row['assignment'] = $user->assignment;
+                fputcsv($file, array($row['name'], $row['email'], $row['type'], $row['username'], $row['assignment']));
             }
 
             fclose($file);
@@ -640,34 +817,21 @@ class UserController extends Controller
                     $row++; 
                     if ($row > 1) 
                     {  
-                        $exist = User::where('code', $data[0])->get();
+                        $exist = User::where('username', $data[3])->get();
                         if ($exist->count() > 0) {
                             $user = User::find($exist->first()->id);
-                            $user->code = $data[0];
-                            $user->name = $data[1];
-                            $user->description = $data[2];
+                            $user->name = $data[0];
+                            $user->username = $data[1];
+                            $user->type = $data[2];
+                            $user->type = $data[2];
+                            $user->type = $data[2];
                             $user->updated_at = $timestamp;
                             $user->updated_by = Auth::user()->id;
 
                             if ($user->update()) {
                                 $this->audit_logs('purchase_orders_types', $exist->first()->id, 'has modified a purchase order type.', User::find($exist->first()->id), $timestamp, Auth::user()->id);
                             }
-                        } else {
-                            $res = User::count();
-                            $user = User::create([
-                                'code' => $data[0],
-                                'name' => $data[1],
-                                'description' => $data[2],
-                                'created_at' => $timestamp,
-                                'created_by' => Auth::user()->id
-                            ]);
-                    
-                            if (!$user) {
-                                throw new NotFoundHttpException();
-                            }
-                        
-                            $this->audit_logs('purchase_orders_types', $user->id, 'has inserted a new purchase order type.', User::find($user->id), $timestamp, Auth::user()->id);
-                        }
+                        } 
                     } // close for if $row > 1 condition   
                 }
                 fclose($files);

@@ -109,7 +109,7 @@
         */
         this.$body.on('click', '#userTable .edit-btn', function (e) {
             var id     = $(this).closest('tr').attr('data-row-id');
-            var code   = $(this).closest('tr').attr('data-row-code');
+            var code   = $(this).closest('tr').attr('data-row-user');
             var modal  = $('#userModal');
             var urlz   = base_url + 'auth/components/users/find/' + id;
             console.log(urlz);
@@ -122,6 +122,9 @@
                         modal.find('input[name='+k+']').val(v);
                         modal.find('textarea[name='+k+']').val(v);
                         modal.find('select[name='+k+']').select2().val(v).trigger('change');
+                        if (k == 'assignment') {
+                            modal.find('select[name="assignment[]"]').select2().val(v).trigger('change');
+                        }
                     });
                     modal.find('.modal-header h2').html('Edit user (<span>' + code + '</span>)');
                     modal.find('input[name="method"]').val('edit');
@@ -141,11 +144,11 @@
         */
         this.$body.on('click', '#userTable .remove-btn', function (e) {
             var id     = $(this).closest('tr').attr('data-row-id');
-            var code   = $(this).closest('tr').attr('data-row-code');
+            var code   = $(this).closest('tr').attr('data-row-user');
             var urlz   = base_url + 'auth/components/users/remove/' + id;
             console.log(urlz);
             Swal.fire({
-                html: "Are you sure you? <br/>the user with code ("+ code +")<br/>will be removed.",
+                html: "Are you sure you? <br/>the user with username ("+ code +")<br/>will be removed.",
                 icon: "warning",
                 showCancelButton: !0,
                 buttonsStyling: !1,
@@ -185,11 +188,11 @@
         */
         this.$body.on('click', '#userTable .restore-btn', function (e) {
             var id     = $(this).closest('tr').attr('data-row-id');
-            var code   = $(this).closest('tr').attr('data-row-code');
+            var code   = $(this).closest('tr').attr('data-row-user');
             var urlz   = base_url + 'auth/components/users/restore/' + id;
             console.log(urlz);
             Swal.fire({
-                html: "Are you sure you? <br/>the user with code ("+ code +")<br/>will be restored.",
+                html: "Are you sure you? <br/>the user with user ("+ code +")<br/>will be restored.",
                 icon: "warning",
                 showCancelButton: !0,
                 buttonsStyling: !1,

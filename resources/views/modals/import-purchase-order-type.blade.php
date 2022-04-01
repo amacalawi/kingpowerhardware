@@ -18,7 +18,7 @@
             <!--end::Modal header-->
             <!--begin::Modal body-->
             <div class="modal-body">
-                <form method="POST" action="{{ url('/auth/components/purchase-order-types/import')}}" class="dropzone dz-clickable" id="import-payment-term-dropzone">
+                <form method="POST" action="{{ url('/auth/components/purchase-order-types/import')}}" class="dropzone dz-clickable" id="import-purchase-order-type-dropzone">
                     @csrf
                     <div class="dz-default dz-message"><span>Drop files here to upload</span></div>
                 </form>

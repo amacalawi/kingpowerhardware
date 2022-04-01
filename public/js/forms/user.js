@@ -1,5 +1,5 @@
 "use strict";
-var KTModalpurchase_order_typesAdd = (function () {
+var KTModalusersAdd = (function () {
     var t, e, o, n, r, i, z;
     return {
         init: function () {
@@ -35,11 +35,22 @@ var KTModalpurchase_order_typesAdd = (function () {
                                 },
                             } 
                         },
+                        secret_question_id: { validators: { notEmpty: { message: "secret question is required" } } },
+                        secret_password: { validators: { notEmpty: { message: "secret password is required" } } },
                     },
                     plugins: { trigger: new FormValidation.plugins.Trigger(), bootstrap: new FormValidation.plugins.Bootstrap5({ rowSelector: ".fv-row", eleInvalidClass: "", eleValidClass: "" }) },
                 })),
+                $(r.querySelector('[name="type"]')).on("change", function () {
+                    n.revalidateField("type");
+                }),
+                $(r.querySelector('[name="assignment"]')).on("change", function () {
+                    n.revalidateField("assignment");
+                }),
+                $(r.querySelector('[name="secret_question_id"]')).on("change", function () {
+                    n.revalidateField("secret_question_id");
+                }),
                 t.addEventListener("click", function (e) {
-                    var formUrl = ($('#userModal').find('input[name="method"]').val() == 'add') ? r.getAttribute('action') : base_url + 'auth/components/purchase-order-types/update/' + $('#userModal').find('input[name="id"]').val(); 
+                    var formUrl = ($('#userModal').find('input[name="method"]').val() == 'add') ? r.getAttribute('action') : base_url + 'auth/components/users/update/' + $('#userModal').find('input[name="id"]').val(); 
                     var formMethod = ($('#userModal').find('input[name="method"]').val() == 'add') ? 'POST' : 'PUT'; 
                     e.preventDefault(),
                         n &&
@@ -63,16 +74,16 @@ var KTModalpurchase_order_typesAdd = (function () {
                                                                 function (e) {
                                                                     i.hide();
                                                                     t.disabled = !1;
-                                                                    $.purchase_order_type.load_contents(1);
+                                                                    $.user.load_contents(1);
                                                                 }
                                                             );
                                                     } else {
-                                                        $('#userModal').find('input[name="code"]').next().text('This is an existing code.');
+                                                        $('#userModal').find('input[name="'+ data.field +'"]').next().text(data.text);
                                                         Swal.fire({ title: data.title, text: data.text, icon: data.type, buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" } }).then(
                                                             function (e) {
                                                                 t.disabled = !1;
                                                                 // e.isConfirmed && (i.hide(), (t.disabled = !1));
-                                                                $.purchase_order_type.load_contents(1);
+                                                                $.user.load_contents(1);
                                                             }
                                                         );
                                                     }
@@ -117,5 +128,5 @@ var KTModalpurchase_order_typesAdd = (function () {
     };
 })();
 KTUtil.onDOMContentLoaded(function () {
-    KTModalpurchase_order_typesAdd.init();
+    KTModalusersAdd.init();
 });
