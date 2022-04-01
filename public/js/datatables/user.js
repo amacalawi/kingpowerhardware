@@ -241,7 +241,21 @@
             if (page > 0) {
                 $.user.load_contents(page);
             }
-        }); 
+        });
+        
+        this.$body.on('click', 'label[for="password"] span', function (e) {
+            e.preventDefault();
+            var self = $(this);
+            var formGroup = self.closest('.col-xl-6');
+            var icon = formGroup.find('i');
+            var input = formGroup.find('input');
+            icon.toggleClass("la-eye la-eye-slash");
+            if (input.attr('type') == 'password') {
+                input.attr('type', 'text');
+            } else {
+                input.attr('type', 'password');
+            }
+        });
 
         
     }

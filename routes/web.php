@@ -10,7 +10,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\PaymentTermsController;
 use App\Http\Controllers\PurchaseOrderTypeController;
 use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\InventoryAdjustmentController;
+use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\TransferItemController;
 use App\Http\Controllers\UserController;
 
@@ -105,10 +105,10 @@ Route::prefix('auth')->group(function () {
         });
         
         Route::prefix('inventory-adjustment')->group(function () {
-            Route::get('',[InventoryAdjustmentController::class, 'index']);
-            Route::get('all-active',[InventoryAdjustmentController::class, 'all_active']);
-            Route::post('store',[InventoryAdjustmentController::class, 'store']);
-            Route::get('get-item-info/{item?}/{branch?}',[InventoryAdjustmentController::class, 'get_item_info']);
+            Route::get('',[AdjustmentController::class, 'index']);
+            Route::get('all-active',[AdjustmentController::class, 'all_active']);
+            Route::post('store',[AdjustmentController::class, 'store']);
+            Route::get('get-item-info/{item?}/{branch?}',[AdjustmentController::class, 'get_item_info']);
         });
 
         Route::prefix('transfer-items')->group(function () {
