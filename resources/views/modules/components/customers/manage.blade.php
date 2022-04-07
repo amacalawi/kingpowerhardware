@@ -42,7 +42,7 @@
                         </div>
 
                         <!--begin::Import-->
-                        <button type="button" class="btn btn-light-primary me-3" data-bs-toggle="modal" data-bs-target="#kt_customers_export_modal">
+                        <button type="button" class="btn btn-light-primary me-3" data-bs-toggle="modal" data-bs-target="#importCustomerModal">
                         <!--begin::Svg Icon | path: assets/media/icons/duotone/Files/Import.svg-->
                         <span class="svg-icon svg-icon-2">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
@@ -106,9 +106,14 @@
         <!--end::Card-->
     </div>
     @include('modals.customer')
+    @include('modals.import-customer')
 @endsection
 
+@push('styles')
+    <link href="{{ asset('assets/vendors/dropzone/dropzone.css') }}" rel="stylesheet" type="text/css" />
+@endpush
 @push('scripts')
+    <script src="{{ asset('assets/vendors/dropzone/dropzone.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/datatables/customer.js') }}" type="text/javascript"></script>
     <script src="{{ asset('js/forms/customer.js') }}" type="text/javascript"></script>
 @endpush

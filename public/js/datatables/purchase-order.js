@@ -8,7 +8,7 @@
     var track_page = 1; 
     var t, n;
     var o2, n2, r2, t2;
-    var t3, n3, z3, postingValidation = 0;
+    var t3, n3, z3, postingValidation = 0, edit = 0;
 
     purchase_order.prototype.load_contents = function(track_page) 
     {   
@@ -148,42 +148,12 @@
         });
         $(r2.querySelector('[name="branch_id"]')).on("change", function () {
             n2.revalidateField("branch_id");
-            if ($('#purchase_order_id').val() !== '') {
-                $.ajax({
-                    type: 'PUT',
-                    url: base_url + 'auth/purchase-order/update/' + $('#purchase_order_id').val(),
-                    data: $('#purchaseOrderForm').serialize(),
-                    success: function(response) {
-                        var data = $.parseJSON(response); 
-                    },
-                });
-            }
         });
         $(r2.querySelector('[name="supplier_id"]')).on("change", function () {
             n2.revalidateField("supplier_id");
-            if ($('#purchase_order_id').val() !== '') {
-                $.ajax({
-                    type: 'PUT',
-                    url: base_url + 'auth/purchase-order/update/' + $('#purchase_order_id').val(),
-                    data: $('#purchaseOrderForm').serialize(),
-                    success: function(response) {
-                        var data = $.parseJSON(response); 
-                    },
-                });
-            }
         });
         $(r2.querySelector('[name="payment_terms_id"]')).on("change", function () {
             n2.revalidateField("payment_terms_id");
-            if ($('#purchase_order_id').val() !== '') {
-                $.ajax({
-                    type: 'PUT',
-                    url: base_url + 'auth/purchase-order/update/' + $('#purchase_order_id').val(),
-                    data: $('#purchaseOrderForm').serialize(),
-                    success: function(response) {
-                        var data = $.parseJSON(response); 
-                    },
-                });
-            }
         });
     },
 
@@ -298,6 +268,7 @@
             var total  = $(this).closest('tr').attr('data-row-amount');
             var modal  = $('#purchaseOrderModal');
             var urlz   = base_url + 'auth/purchase-order/find/' + id;
+            edit = 1;
             console.log(urlz);
             modal.find('.modal-header h5').html('Edit Purchase Order ('+po+')');
             $.ajax({
@@ -330,6 +301,7 @@
                 complete: function() {
                     window.onkeydown = null;
                     window.onfocus = null;
+                    edit = 0;
                 }
             });
         }); 
@@ -467,12 +439,20 @@
                                 });
                             }, 2e3))
                         } else {
-                            self.addClass('hidden');
-                            $('#prev-next-btn-holder button.prev').removeClass('hidden');
-                            $('div[data-kt-stepper-element="content"][steps="1"]').removeClass('current');
-                            $('div[data-kt-stepper-element="content"][steps="2"]').addClass('current');
-                            $('div.stepper-nav div[steps="1"].stepper-item').removeClass('current');
-                            $('div.stepper-nav div[steps="2"].stepper-item').addClass('current');
+                            $.ajax({
+                                type: 'PUT',
+                                url: base_url + 'auth/purchase-order/update/' + $('#purchase_order_id').val(),
+                                data: form.serialize(),
+                                success: function(response) {
+                                    var data = $.parseJSON(response); 
+                                    self.addClass('hidden');
+                                    $('#prev-next-btn-holder button.prev').removeClass('hidden');
+                                    $('div[data-kt-stepper-element="content"][steps="1"]').removeClass('current');
+                                    $('div[data-kt-stepper-element="content"][steps="2"]').addClass('current');
+                                    $('div.stepper-nav div[steps="1"].stepper-item').removeClass('current');
+                                    $('div.stepper-nav div[steps="2"].stepper-item').addClass('current');
+                                },
+                            });
                         }
                     }
             });
@@ -512,7 +492,7 @@
             var modal = self.closest('.modal');
             var urlz   = base_url + 'auth/purchase-order/get-supplier-info/' + self.val();
             console.log(urlz);
-            if (self.val() > 0) {
+            if (self.val() > 0 && edit == 0) {
                 $.ajax({
                     type: 'GET',
                     url: urlz,

@@ -307,7 +307,9 @@ class CustomerController extends Controller
                 'customers.description',
                 'customers.mobile_no',
                 'customers.address',
-                'users.name as userz'
+                'users.name as userz',
+                'customers.created_at',
+                'customers.updated_at'
             ])
             ->leftJoin('users', function($join)
             {
@@ -333,7 +335,9 @@ class CustomerController extends Controller
                 'customers.description',
                 'customers.mobile_no',
                 'customers.address',
-                'users.name as userz'
+                'users.name as userz',
+                'customers.created_at',
+                'customers.updated_at'
             ])
             ->leftJoin('users', function($join)
             {
@@ -455,9 +459,78 @@ class CustomerController extends Controller
         echo json_encode( $data ); exit();
     }
 
+    public function import(Request $request)
+    {   
+        // $this->is_permitted(0);
+        foreach($_FILES as $file)
+        {   
+            $row = 0; $timestamp = date('Y-m-d H:i:s');
+            if (($files = fopen($file['tmp_name'], "r")) !== FALSE) 
+            {
+                while (($data = fgetcsv($files, 3000, ",")) !== FALSE) 
+                {
+                    $row++; 
+                    if ($row > 1) 
+                    {  
+                        $exist = Customer::where('code', $data[0])->get();
+                        if (strlen($data[4]) > 0) {
+                            $mobileNo = (strlen($data[4]) == 10) ? '0'.$data[4] : $data[4];
+                        } else {
+                            $mobileNo = NULL;
+                        }
+                        if ($exist->count() > 0) {
+                            $customer = Customer::find($exist->first()->id);
+                            $customer->code = $data[0];
+                            $customer->name = $data[1];
+                            $customer->description = $data[2];
+                            $customer->email = $data[3];
+                            $customer->mobile_no = $mobileNo;
+                            $customer->address = $data[5];
+                            $customer->agent_id = $data[6];
+                            $customer->updated_at = $timestamp;
+                            $customer->updated_by = Auth::user()->id;
+
+                            if ($customer->update()) {
+                                $this->audit_logs('customers', $exist->first()->id, 'has modified a customer.', Customer::find($exist->first()->id), $timestamp, Auth::user()->id);
+                            }
+                        } else {
+                            $res = Customer::count();
+                            $customer = Customer::create([
+                                'code' => $data[0],
+                                'name' => $data[1],
+                                'description' => $data[2],
+                                'email' => $data[3],
+                                'mobile_no' => $mobileNo,
+                                'address' => $data[5],
+                                'agent_id' => $data[6],
+                                'created_at' => $timestamp,
+                                'created_by' => Auth::user()->id
+                            ]);
+                    
+                            if (!$customer) {
+                                throw new NotFoundHttpException();
+                            }
+                        
+                            $this->audit_logs('customers', $customer->id, 'has inserted a new customer.', Customer::find($customer->id), $timestamp, Auth::user()->id);
+                        }
+                    } // close for if $row > 1 condition   
+                }
+                fclose($files);
+            }
+        }
+
+        $data = array(
+            'message' => 'success'
+        );
+
+        echo json_encode( $data );
+
+        exit();
+    }
+
     public function export(Request $request)
     {   
-        $fileName = 'customers.csv';
+        $fileName = 'customers_'.time().'.csv';
 
         $customers = Customer::select(['customers.id', 'customers.code', 'customers.name', 'customers.description', 'customers.email', 'customers.mobile_no', 'customers.mobile_no', 'customers.agent_id'])
         ->join('users', function($join)
@@ -476,14 +549,13 @@ class CustomerController extends Controller
             "Expires"             => "0"
         );
 
-        $columns = array('ID No.', 'Code', 'Name', 'Company', 'Email', 'Mobile No.', 'Address', 'Agent ID');
+        $columns = array('Code', 'Name', 'Company', 'Email', 'Mobile No.', 'Address', 'Agent ID');
 
         $callback = function() use($customers, $columns) {
             $file = fopen('php://output', 'w');
             fputcsv($file, $columns);
 
             foreach ($customers as $customer) {
-                $row['id']        = $customer->id;
                 $row['code']      = $customer->code;
                 $row['name']      = $customer->name;
                 $row['company']   = $customer->description;
@@ -491,7 +563,7 @@ class CustomerController extends Controller
                 $row['mobile_no'] = $customer->mobile_no;
                 $row['address']   = $customer->address;
                 $row['agent_id']  = ($customer->agent_id > 0) ? $customer->agent_id : '-';
-                fputcsv($file, array($row['id'], $row['code'], $row['name'], $row['company'], $row['email'], $row['mobile_no'], $row['address'], $row['agent_id']));
+                fputcsv($file, array($row['code'], $row['name'], $row['company'], $row['email'], $row['mobile_no'], $row['address'], $row['agent_id']));
             }
 
             fclose($file);

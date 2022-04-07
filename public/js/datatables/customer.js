@@ -35,6 +35,37 @@
             }
         });
     },
+    
+    customer.prototype.datatables = function()
+    {
+        Dropzone.autoDiscover = false;
+        var accept = ".csv";
+
+        $('#import-customer-dropzone').dropzone({
+            acceptedFiles: accept,
+            maxFilesize: 209715200,
+            timeout: 0,
+            init: function () {
+            this.on("processing", function(file) {
+                this.options.url = base_url + 'auth/components/customers/import';
+                console.log(this.options.url);
+            }).on("queuecomplete", function (file, response) {
+                // console.log(response);
+            }).on("success", function (file, response) {
+                console.log(response);
+                var data = $.parseJSON(response);
+                if (data.message == 'success') {
+                    $.customer.load_contents(1);
+                }
+            }).on("totaluploadprogress", function (progress) {
+                var progressElement = $("[data-dz-uploadprogress]");
+                progressElement.width(progress + '%');
+                progressElement.find('.progress-text').text(progress + '%');
+            });
+            this.on("error", function(file){if (!file.accepted) this.removeFile(file);});            
+            }
+        });
+    },
 
     customer.prototype.init = function()
     {   
@@ -176,4 +207,5 @@
 function($) {
     "use strict";
     $.customer.init();
+    $.customer.datatables();
 }(window.jQuery);
