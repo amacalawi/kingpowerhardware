@@ -66,7 +66,7 @@ class PurchaseOrderController extends Controller
             'contact_person' => $request->contact_person,
             'contact_no' => $request->contact_no,
             'due_date' => date('Y-m-d', strtotime($request->get('due_date'))),
-            'address' => $request->address,
+            'delivery_place' => $request->address,
             'remarks' => $request->remarks,
             'created_at' => $timestamp,
             'created_by' => Auth::user()->id
@@ -107,7 +107,7 @@ class PurchaseOrderController extends Controller
             'payment_terms_id' => $purchaseOrder->payment_terms_id,
             'purchase_order_type_id' => $purchaseOrder->purchase_order_type_id,
             'contact_person' => $purchaseOrder->contact_person,
-            'address' => $purchaseOrder->address,
+            'address' => $purchaseOrder->delivery_place,
             'remarks' => $purchaseOrder->remarks,
             'total_amount' => $purchaseOrder->total_amount,
             'contact_no' => strval($purchaseOrder->contact_no)
@@ -131,11 +131,12 @@ class PurchaseOrderController extends Controller
         }
 
         // $purchaseOrder->branch_id = $request->branch_id;
-        $purchaseOrder->customer_id = $request->customer_id;
+        $purchaseOrder->supplier_id = $request->supplier_id;
         $purchaseOrder->payment_terms_id = $request->payment_terms_id;
-        $purchaseOrder->agent_id = $request->agent_id;
+        $purchaseOrder->purchase_order_type_id = $request->purchase_order_type_id;
+        $purchaseOrder->contact_person = $request->contact_person;
         $purchaseOrder->contact_no = $request->contact_no;
-        $purchaseOrder->address = $request->address;
+        $purchaseOrder->delivery_place = $request->address;
         $purchaseOrder->remarks = $request->remarks;
         $purchaseOrder->updated_at = $timestamp;
         $purchaseOrder->updated_by = Auth::user()->id;
@@ -1274,6 +1275,234 @@ class PurchaseOrderController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function preview(Request $request)
+    {   
+        $purchase = PurchaseOrder::select([
+            'purchase_orders.created_at as purchaseDate',
+            'purchase_orders.updated_at',
+            'purchase_orders.id as poID',
+            'purchase_orders.po_no as poNo',
+            'purchase_orders.delivery_place as deliveryPlace',
+            'purchase_orders.contact_person as contactPerson',
+            'purchase_orders.contact_no as contactNo',
+            'purchase_orders.due_date as due_date',
+            'suppliers.name as supplier',
+            'payment_terms.name as payment_terms',
+            'branches.name as branch',
+            'purchase_orders.status as status',
+            'purchase_orders.total_amount as total_amount',
+            'purchase_orders_types.name as type',
+            'purchase_orders.created_by as purchaseCreated',
+            'branches.dr_header as drHeader',
+            'branches.dr_address as drAddress'
+        ])
+        ->leftJoin('purchase_orders_types', function($join)
+        {
+            $join->on('purchase_orders_types.id', '=', 'purchase_orders.purchase_order_type_id');
+        })
+        ->leftJoin('suppliers', function($join)
+        {
+            $join->on('suppliers.id', '=', 'purchase_orders.supplier_id');
+        })
+        ->leftJoin('branches', function($join)
+        {
+            $join->on('branches.id', '=', 'purchase_orders.branch_id');
+        })
+        ->leftJoin('payment_terms', function($join)
+        {
+            $join->on('payment_terms.id', '=', 'purchase_orders.payment_terms_id');
+        })
+        ->where([
+            'purchase_orders.is_active' => 1, 
+            'po_no' => $request->get('po_no')
+        ])
+        ->first();
+
+        $lineItems = PurchaseOrderLine::select([
+            'purchase_orders_lines.id as lineID',
+            'items.name as itemName',
+            'items.code as itemCode',
+            'purchase_orders_lines.quantity as quantity',
+            'unit_of_measurements.code as uom',
+            'purchase_orders_lines.srp as srp',
+            'purchase_orders_lines.total_amount as total_amount',
+            'purchase_orders_lines.posted_quantity as posted_quantity',
+        ])
+        ->leftJoin('items', function($join)
+        {
+            $join->on('items.id', '=', 'purchase_orders_lines.item_id');
+        })
+        ->leftJoin('unit_of_measurements', function($join)
+        {
+            $join->on('unit_of_measurements.id', '=', 'purchase_orders_lines.uom_id');
+        })
+        ->where([
+            'purchase_orders_lines.purchase_order_id' => $purchase->poID, 
+            'purchase_orders_lines.is_active' => 1
+        ])
+        ->orderBy('purchase_orders_lines.id', 'asc')
+        ->get();
+
+        PDF::SetMargins(10, 0, 10, false);
+        PDF::SetAutoPageBreak(true, 0);
+        PDF::SetTitle('Purchase Order ('.$request->get('po_no').')');
+        PDF::AddPage('P', 'LETTER');
+        $tbl = '<div style="font-size:10pt">&nbsp;</div>';
+        $tbl .= '<table id="heaer-table" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 9px;">
+            <thead>
+                <tr>
+                    <td align="center"><p style="font-size: 22px">'.$purchase->drHeader.'</p></td>
+                </tr>
+                <tr>
+                    <td align="center"><p style="font-size: 9px">'.$purchase->drAddress.'</p></td>
+                </tr>
+                <tr>
+                    <td align="center" style="font-size: 11px">PURCHASE ORDER</td>
+                </tr>
+            </thead>
+            </table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        $tbl = '<div style="font-size:15pt">&nbsp;</div>';
+        $tbl .= '<table>';
+        $tbl .= '<tbody>';
+        $tbl .= '<tr>';
+        $tbl .= '<td width="64%">';
+        $tbl .= '<table width="100%" cellspacing="0" cellpadding="1" border="0" style="font-size: 9px;">
+        <thead>
+            <tr>
+                <td align="right" width="20%"><strong>SUPPLIER:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="78%" style="border-bottom-width:0.1px;">'.$purchase->supplier.'</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><div style="font-size:5pt">&nbsp;</div><strong>CONTACT NO:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="78%" style="border-bottom-width:0.1px;"><div style="font-size:5pt">&nbsp;</div>'.$purchase->contactPerson.' ('.$purchase->contactNo.')</td>
+            </tr>
+            <tr>
+                <td align="right" width="20%"><div style="font-size:5pt">&nbsp;</div><strong>ADDRESS:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="78%" style="height:39px;border-bottom-width:0.1px;"><div style="font-size:5pt">&nbsp;</div>'.$purchase->deliveryPlace.'</td>
+            </tr>
+        </thead>
+        </table>';
+        $tbl .= '</td>';
+        $tbl .= '<td width="36%">';
+        $tbl .= '<table width="100%" cellspacing="0" cellpadding="1" border="0" style="font-size: 9px;">
+        <thead>
+            <tr>
+                <td align="right" width="25%"><strong>PO#:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="75%" style="border-bottom-width:0.1px;">'.$purchase->poNo.' ('.$purchase->type.')</td>
+            </tr>
+            <tr>
+                <td align="right" width="25%"><div style="font-size:5pt">&nbsp;</div><strong>DATE:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="75%" style="border-bottom-width:0.1px;"><div style="font-size:5pt">&nbsp;</div>'.date('d-M-Y', strtotime($purchase->purchaseDate)).'</td>
+            </tr>
+            <tr>
+                <td align="right" width="25%"><div style="font-size:5pt">&nbsp;</div><strong>TERMS:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="75%" style="border-bottom-width:0.1px;"><div style="font-size:5pt">&nbsp;</div>'.$purchase->payment_terms.' ('.date('d-M-Y', strtotime($purchase->due_date)).')</td>
+            </tr>
+            <tr>
+                <td align="right" width="25%"><div style="font-size:5pt">&nbsp;</div><strong>BRANCH:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="75%" style="border-bottom-width:0.1px;"><div style="font-size:5pt">&nbsp;</div>'.$purchase->branch.'</td>
+            </tr>
+        </thead>
+        </table>';
+        $tbl .= '</td>';
+        $tbl .= '</tr>';
+        $tbl .= '</tbody>';
+        $tbl .= '</table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        $tbl = '<div style="font-size:15pt">&nbsp;</div><table width="100%" cellspacing="0" cellpadding="2" border="0" style="border-bottom-width:0.1px;font-size: 9px;">
+        <thead>
+            <tr>
+                <td rowspan="1" align="center" width="12%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"><strong>QTY</strong></td>
+                <td rowspan="1" align="center" width="7%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"><strong>UOM</strong></td>
+                <td rowspan="1" align="center" width="45%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"><strong>ITEM DESCRIPTION</strong></td>
+                <td rowspan="1" align="center" width="15%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"><strong>PRICE</strong></td>
+                <td rowspan="1" align="center" width="21%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"><strong>AMOUNT</strong></td>
+            </tr>
+            <tr>
+                <td align="center" width="12%" style="height: 527px;border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"></td>
+                <td align="center" width="7%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"></td>
+                <td align="center" width="45%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"></td>
+                <td align="center" width="15%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"></td>
+                <td align="center" width="21%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"></td>
+            </tr>
+        </thead>
+        <tbody>';
+        
+        $tbl .= '</tbody>';
+        $tbl .= '<tfoot>';
+        $tbl .= '<tr>';
+            $tbl .= '<td align="right" colspan="7" style="border-top-width:0.1px;border-left-width:0.1px;border-right-width:0.1px; font-size:10px" width="79%"><strong>TOTAL AMOUNT</strong></td>';
+            $tbl .= '<td align="right" style="border-top-width:0.1px;border-left-width:0.1px;border-right-width:0.1px;font-size:10px" width="21%"></td>';
+        $tbl .= '</tr>';
+        $tbl .= '</tfoot>';
+        $tbl .= '</table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        $tbl = '<div style="font-size:15pt">&nbsp;</div><table width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 9px;">
+        <thead>
+            <tr>
+                <td align="center" width="25%" style="border-bottom-width:0.1px;">'.ucwords(Auth::user()->name).'</td>
+                <td align="center" width="12.5%"></td>
+                <td align="center" width="25%" style="border-bottom-width:0.1px;"></td>
+                <td align="center" width="12.5%"></td>
+                <td align="center" width="25%" style="border-bottom-width:0.1px;">'.ucwords((new User)->where('id', $purchase->purchaseCreated)->first()->name).'</td>
+            </tr>
+            <tr>
+                <td align="center" width="25%"><strong>Printed By</strong></td>
+                <td align="center" width="12.5%"></td>
+                <td align="center" width="25%"><strong>Approved By</strong></td>
+                <td align="center" width="12.5%"></td>
+                <td align="center" width="25%"><strong>Prepared By</strong></td>
+            </tr>
+        </thead>
+        </table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        $totalAmt = 0;
+        PDF::SetXY(10, 68);
+        $tbl = '<table width="100%" cellspacing="0" cellpadding="2" border="0" style="font-size: 10px;">
+        <tbody>';
+        foreach ($lineItems as $line) {
+            if ($request->get('document') == 'preparation') {
+                $totalAmt += floatval($line->total_amount);
+                $total = number_format(floor(($line->total_amount*100))/100,2);
+                $srp = number_format(floor(($line->srp*100))/100,2);
+            } else {
+                $srpVal = floatval($line->total_amount) / floatval($line->quantity);
+                $amount = floatval($line->posted_quantity) * floatval($srpVal);
+                $total = number_format(floor(($amount*100))/100,2);
+                $totalAmt += floatval($amount);
+                $srp = number_format(floor(($line->srp*100))/100,2);
+            }
+            $tbl .= '<tr>';
+            $tbl .= '<td align="center" width="12%">'.$line->quantity.'</td>';
+            $tbl .= '<td align="center" width="7%">'.$line->uom.'</td>';
+            $tbl .= '<td align="left" width="45%">'.$line->itemCode.' - '.$line->itemName.'</td>';
+            $tbl .= '<td align="right" width="15%">'.$srp.'</td>';
+            $tbl .= '<td align="right" width="21%">'.$total.'</td>';
+            $tbl .= '</tr>';
+        }
+        $tbl .=' </tbody>
+        </table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        PDF::SetXY(10, 252.8);
+        $tbl = '<table width="100%" cellspacing="0" cellpadding="2" border="0" style="font-size: 9px;">
+        <tbody>
+        <tr>
+        <td width="79%">&nbsp;</td>
+        <td width="21%" align="right" style="font-size: 10px"><strong>'.number_format(floor(($totalAmt*100))/100,2).'</strong></td>
+        </tr>
+        </tbody>
+        </table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        PDF::Output('preview.pdf');
     }
 
     public function audit_logs($entity, $entity_id, $description, $data, $timestamp, $user)

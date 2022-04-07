@@ -875,7 +875,7 @@
         */
         this.$body.on('click', '#preview-preparation-btn', function (e) {
             e.preventDefault();
-            var url = base_url + 'auth/items/transfer-items/preview?document=preparation&dr_no=' + $('#transfer_item_doc_no').val();
+            var url = base_url + 'auth/items/transfer-items/preview?document=preparation&tr_no=' + $('#transfer_no').val();
             window.open(url, "_blank");
         });
 
@@ -886,7 +886,7 @@
         */
         this.$body.on('click', '#preview-posting-btn', function (e) {
             e.preventDefault();
-            var url = base_url + 'auth/items/transfer-items/preview?document=posting&dr_no=' + $('#transfer_item_doc_no').val();
+            var url = base_url + 'auth/items/transfer-items/preview?document=posting&tr_no=' + $('#transfer_no').val();
             window.open(url, "_blank");
         });
 

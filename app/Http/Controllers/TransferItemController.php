@@ -19,6 +19,7 @@ use App\Models\AuditLog;
 use Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\File;
+use PDF;
 
 class TransferItemController extends Controller
 {   
@@ -1470,6 +1471,209 @@ class TransferItemController extends Controller
         );
 
         echo json_encode( $data ); exit();
+    }
+
+    public function preview(Request $request)
+    {   
+        $trans = TransferItem::select([
+            'transfer_items.id as transId',
+            'transfer_items.transfer_no as transNo',
+            'bra1.name as transFrom',
+            'bra2.name as transTo',
+            'transfer_items.remarks as remarks',
+            'transfer_items.total_amount as total_amount',
+            'transfer_items.status as status',
+            'transfer_items.created_at as transDate',
+            'transfer_items.created_by as transCreated',
+            'bra2.dr_header as drHeader',
+            'bra2.dr_address as drAddress'
+        ])        
+        ->leftJoin('branches as bra1', function($join)
+        {
+            $join->on('bra1.id', '=', 'transfer_items.transfer_from');
+        })
+        ->leftJoin('branches as bra2', function($join)
+        {
+            $join->on('bra2.id', '=', 'transfer_items.transfer_to');
+        })
+        ->where([
+            'transfer_no' => $request->get('tr_no')
+        ])->first();
+
+        $lineItems = TransferItemLine::select([
+            'transfer_items_lines.id as lineID',
+            'items.name as itemName',
+            'items.code as itemCode',
+            'transfer_items_lines.quantity as quantity',
+            'unit_of_measurements.code as uom',
+            'transfer_items_lines.srp as srp',
+            'transfer_items_lines.total_amount as total_amount',
+            'transfer_items_lines.posted_quantity as posted_quantity',
+        ])
+        ->leftJoin('items', function($join)
+        {
+            $join->on('items.id', '=', 'transfer_items_lines.item_id');
+        })
+        ->leftJoin('unit_of_measurements', function($join)
+        {
+            $join->on('unit_of_measurements.id', '=', 'transfer_items_lines.uom_id');
+        })
+        ->where([
+            'transfer_items_lines.transfer_item_id' => $trans->transId, 
+            'transfer_items_lines.is_active' => 1
+        ])
+        ->get();
+
+        PDF::SetMargins(10, 0, 10, false);
+        PDF::SetAutoPageBreak(true, 0);
+        PDF::SetTitle('Transfer Items ('.$request->get('tr_no').')');
+        PDF::AddPage('P', 'LETTER');
+        $tbl = '<div style="font-size:10pt">&nbsp;</div>';
+        $tbl .= '<table id="heaer-table" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 9px;">
+            <thead>
+                <tr>
+                    <td align="center"><p style="font-size: 22px">King Power Wholesaling Materials</p></td>
+                </tr>
+                <tr>
+                    <td align="center"><p style="font-size: 9px"></p></td>
+                </tr>
+                <tr>
+                    <td align="center" style="font-size: 11px">TRANSFER ITEMS</td>
+                </tr>
+            </thead>
+            </table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        $tbl = '<div style="font-size:15pt">&nbsp;</div>';
+        $tbl .= '<table>';
+        $tbl .= '<tbody>';
+        $tbl .= '<tr>';
+        $tbl .= '<td width="65%">';
+        $tbl .= '<table width="100%" cellspacing="0" cellpadding="1" border="0" style="font-size: 9px;">
+        <thead>
+            <tr>
+                <td align="right" width="22%"><strong>FROM BRANCH:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="78%" style="border-bottom-width:0.1px;">'.$trans->transFrom.'</td>
+            </tr>
+            <tr>
+                <td align="right" width="22%"><div style="font-size:5pt">&nbsp;</div><strong>TO BRANCH:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="78%" style="border-bottom-width:0.1px;"><div style="font-size:5pt">&nbsp;</div>'.$trans->transTo.'</td>
+            </tr>
+            <tr>
+                <td align="right" width="22%"><div style="font-size:5pt">&nbsp;</div><strong>REMARKS:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="78%" style="height:39px;border-bottom-width:0.1px;"><div style="font-size:5pt">&nbsp;</div>'.$trans->remarks.'</td>
+            </tr>
+        </thead>
+        </table>';
+        $tbl .= '</td>';
+        $tbl .= '<td width="35%">';
+        $tbl .= '<table width="100%" cellspacing="0" cellpadding="1" border="0" style="font-size: 9px;">
+        <thead>
+            <tr>
+                <td align="right" width="25%"><strong>TR#:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="75%" style="border-bottom-width:0.1px;">'.$trans->transNo.'</td>
+            </tr>
+            <tr>
+                <td align="right" width="25%"><div style="font-size:5pt">&nbsp;</div><strong>DATE:&nbsp;&nbsp;</strong></td>
+                <td align="left" width="75%" style="border-bottom-width:0.1px;"><div style="font-size:5pt">&nbsp;</div>'.date('d-M-Y', strtotime($trans->transDate)).'</td>
+            </tr>
+        </thead>
+        </table>';
+        $tbl .= '</td>';
+        $tbl .= '</tr>';
+        $tbl .= '</tbody>';
+        $tbl .= '</table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        $tbl = '<div style="font-size:15pt">&nbsp;</div><table width="100%" cellspacing="0" cellpadding="2" border="0" style="border-bottom-width:0.1px;font-size: 9px;">
+        <thead>
+            <tr>
+                <td rowspan="1" align="center" width="12%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"><strong>QTY</strong></td>
+                <td rowspan="1" align="center" width="7%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"><strong>UOM</strong></td>
+                <td rowspan="1" align="center" width="45%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"><strong>ITEM DESCRIPTION</strong></td>
+                <td rowspan="1" align="center" width="15%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"><strong>PRICE</strong></td>
+                <td rowspan="1" align="center" width="21%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"><strong>AMOUNT</strong></td>
+            </tr>
+            <tr>
+                <td align="center" width="12%" style="height: 527px;border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"></td>
+                <td align="center" width="7%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"></td>
+                <td align="center" width="45%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"></td>
+                <td align="center" width="15%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"></td>
+                <td align="center" width="21%" style="border-top-width:0.1px;border-left-width:0.1px;border-bottom-width:0.1px;border-right-width:0.1px;"></td>
+            </tr>
+        </thead>
+        <tbody>';
+        
+        $tbl .= '</tbody>';
+        $tbl .= '<tfoot>';
+        $tbl .= '<tr>';
+            $tbl .= '<td align="right" colspan="7" style="border-top-width:0.1px;border-left-width:0.1px;border-right-width:0.1px; font-size:10px" width="79%"><strong>TOTAL AMOUNT</strong></td>';
+            $tbl .= '<td align="right" style="border-top-width:0.1px;border-left-width:0.1px;border-right-width:0.1px;font-size:10px" width="21%"></td>';
+        $tbl .= '</tr>';
+        $tbl .= '</tfoot>';
+        $tbl .= '</table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        $tbl = '<div style="font-size:15pt">&nbsp;</div><table width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size: 9px;">
+        <thead>
+            <tr>
+                <td align="center" width="25%" style="border-bottom-width:0.1px;">'.ucwords(Auth::user()->name).'</td>
+                <td align="center" width="12.5%"></td>
+                <td align="center" width="25%" style="border-bottom-width:0.1px;"></td>
+                <td align="center" width="12.5%"></td>
+                <td align="center" width="25%" style="border-bottom-width:0.1px;">'.ucwords((new User)->where('id', $trans->transCreated)->first()->name).'</td>
+            </tr>
+            <tr>
+                <td align="center" width="25%"><strong>Printed By</strong></td>
+                <td align="center" width="12.5%"></td>
+                <td align="center" width="25%"><strong>Approved By</strong></td>
+                <td align="center" width="12.5%"></td>
+                <td align="center" width="25%"><strong>Prepared By</strong></td>
+            </tr>
+        </thead>
+        </table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        $totalAmt = 0;
+        PDF::SetXY(10, 68);
+        $tbl = '<table width="100%" cellspacing="0" cellpadding="2" border="0" style="font-size: 10px;">
+        <tbody>';
+        foreach ($lineItems as $line) {
+            if ($request->get('document') == 'preparation') {
+                $totalAmt += floatval($line->total_amount);
+                $total = number_format(floor(($line->total_amount*100))/100,2);
+                $srp = number_format(floor(($line->srp*100))/100,2);
+            } else {
+                $srpVal = floatval($line->total_amount) / floatval($line->quantity);
+                $amount = floatval($line->posted_quantity) * floatval($srpVal);
+                $total = number_format(floor(($amount*100))/100,2);
+                $totalAmt += floatval($amount);
+                $srp = number_format(floor(($line->srp*100))/100,2);
+            }
+            $tbl .= '<tr>';
+            $tbl .= '<td align="center" width="12%">'.$line->quantity.'</td>';
+            $tbl .= '<td align="center" width="7%">'.$line->uom.'</td>';
+            $tbl .= '<td align="left" width="45%">'.$line->itemCode.' - '.$line->itemName.'</td>';
+            $tbl .= '<td align="right" width="15%">'.$srp.'</td>';
+            $tbl .= '<td align="right" width="21%">'.$total.'</td>';
+            $tbl .= '</tr>';
+        }
+        $tbl .=' </tbody>
+        </table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        PDF::SetXY(10, 252.8);
+        $tbl = '<table width="100%" cellspacing="0" cellpadding="2" border="0" style="font-size: 9px;">
+        <tbody>
+        <tr>
+        <td width="79%">&nbsp;</td>
+        <td width="21%" align="right" style="font-size: 10px"><strong>'.number_format(floor(($totalAmt*100))/100,2).'</strong></td>
+        </tr>
+        </tbody>
+        </table>';
+        PDF::writeHTML($tbl, false, false, false, false, '');
+
+        PDF::Output('preview.pdf');
     }
 
     public function audit_logs($entity, $entity_id, $description, $data, $timestamp, $user)

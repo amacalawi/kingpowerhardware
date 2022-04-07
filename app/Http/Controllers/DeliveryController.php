@@ -1569,7 +1569,7 @@ class DeliveryController extends Controller
             
         $totalAmt = 0;
         PDF::SetXY(10, 73);
-        $tbl = '<table width="100%" cellspacing="0" cellpadding="2" border="0" style="font-size: 9px;">
+        $tbl = '<table width="100%" cellspacing="0" cellpadding="2" border="0" style="font-size: 10px;">
         <tbody>';
         if ($request->get('document') == 'preparation') {
             foreach ($deliverLines as $line) {
@@ -1592,7 +1592,7 @@ class DeliveryController extends Controller
                 $srpVal = floatval($line->total_amount) / floatval($line->prep_quantity);
                 $amount = floatval($line->quantity) * floatval($srpVal);
                 $total = number_format(floor(($amount*100))/100,2);
-                $totalAmt += floatval($total);
+                $totalAmt += floatval($amount);
                 $srp = number_format(floor(($line->srp*100))/100,2);
                 $tbl .= '<tr>';
                     $tbl .= '<td align="center" style="border-left-width:0.1px;border-right-width:0.1px;" width="9%">'.$line->quantity.'</td>';

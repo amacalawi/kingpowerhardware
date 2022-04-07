@@ -13,6 +13,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\TransferItemController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\DeliveryReportsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -126,6 +127,7 @@ Route::prefix('auth')->group(function () {
             Route::get('find-line-item/{id?}',[TransferItemController::class, 'find_line_item']);
             Route::get('find-line/{id?}',[TransferItemController::class, 'find_line']);
             Route::post('post-line-item/{id?}',[TransferItemController::class, 'post_line_item']);
+            Route::get('preview',[TransferItemController::class, 'preview']);
         });
     });
 
@@ -139,7 +141,7 @@ Route::prefix('auth')->group(function () {
             Route::post('store',[CustomerController::class, 'store']);
             Route::put('update/{id?}',[CustomerController::class, 'update']);
             Route::get('export',[CustomerController::class, 'export']);
-            Route::get('import',[CustomerController::class, 'import']);
+            Route::post('import',[CustomerController::class, 'import']);
             Route::put('remove/{id?}',[CustomerController::class, 'remove']);
             Route::put('restore/{id?}',[CustomerController::class, 'restore']);
         });
@@ -231,6 +233,14 @@ Route::prefix('auth')->group(function () {
         });
     });
 
+    /* Reports Routes */
+    Route::prefix('reports')->group(function () {
+        Route::prefix('delivery-reports')->group(function () {
+            Route::get('',[DeliveryReportsController::class, 'index']);
+            Route::get('search',[DeliveryReportsController::class, 'search']);
+
+        });
+    });
 });
 
 // Auth::routes();
