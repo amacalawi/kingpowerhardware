@@ -317,7 +317,8 @@ class PurchaseOrderController extends Controller
     }
 
     public function get_line_items($limit, $start_from, $keywords = '')
-    {
+    {   
+        $user = Auth::user()->id;
         if (!empty($keywords)) {
             $res = PurchaseOrder::select([
                 'purchase_orders.created_at',
@@ -349,6 +350,9 @@ class PurchaseOrderController extends Controller
             {
                 $join->on('payment_terms.id', '=', 'purchase_orders.payment_terms_id');
             })
+            ->whereIn('branches.id', 
+                explode(',', trim((new User)->select(['assignment'])->where('id', $user)->first()->assignment))
+            )
             ->where('purchase_orders.is_active', 1)
             ->where(function($q) use ($keywords) {
                 $q->where('purchase_orders.po_no', 'like', '%' . $keywords . '%')
@@ -393,6 +397,9 @@ class PurchaseOrderController extends Controller
             {
                 $join->on('payment_terms.id', '=', 'purchase_orders.payment_terms_id');
             })
+            ->whereIn('branches.id', 
+                explode(',', trim((new User)->select(['assignment'])->where('id', $user)->first()->assignment))
+            )
             ->where('purchase_orders.is_active', 1)
             ->skip($start_from)->take($limit)
             ->orderBy('purchase_orders.id', 'desc')
@@ -418,7 +425,8 @@ class PurchaseOrderController extends Controller
     }
 
     public function get_page_count($keywords = '')
-    {
+    {   
+        $user = Auth::user()->id;
         if (!empty($keywords)) {
             $res = PurchaseOrder::select([
                 'purchase_orders.created_at',
@@ -450,6 +458,9 @@ class PurchaseOrderController extends Controller
             {
                 $join->on('payment_terms.id', '=', 'purchase_orders.payment_terms_id');
             })
+            ->whereIn('branches.id', 
+                explode(',', trim((new User)->select(['assignment'])->where('id', $user)->first()->assignment))
+            )
             ->where('purchase_orders.is_active', 1)
             ->where(function($q) use ($keywords) {
                 $q->where('purchase_orders.po_no', 'like', '%' . $keywords . '%')
@@ -493,6 +504,9 @@ class PurchaseOrderController extends Controller
             {
                 $join->on('payment_terms.id', '=', 'purchase_orders.payment_terms_id');
             })
+            ->whereIn('branches.id', 
+                explode(',', trim((new User)->select(['assignment'])->where('id', $user)->first()->assignment))
+            )
             ->where('purchase_orders.is_active', 1)
             ->orderBy('purchase_orders.id', 'desc')
             ->count();
