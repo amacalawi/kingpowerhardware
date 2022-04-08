@@ -100,6 +100,7 @@
             modal.find('.modal-header h2').html('Add a user');
             modal.find('input[name="method"]').val('add');
             modal.find('.invalid-feedback').text('');
+            modal.find('select').select2().val('').trigger('change');
         });
 
         /*

@@ -345,7 +345,8 @@ class DeliveryController extends Controller
     }
 
     public function get_line_items($limit, $start_from, $keywords = '')
-    {
+    {   
+        $user = Auth::user()->id;
         if (!empty($keywords)) {
             $res = Delivery::select([
                 'delivery.created_at',
@@ -375,6 +376,9 @@ class DeliveryController extends Controller
             {
                 $join->on('payment_terms.id', '=', 'delivery.payment_terms_id');
             })
+            ->whereIn('branches.id', 
+                explode(',', trim((new User)->select(['assignment'])->where('id', $user)->first()->assignment))
+            )
             ->where('delivery.is_active', 1)
             ->where(function($q) use ($keywords) {
                 $q->where('delivery.delivery_doc_no', 'like', '%' . $keywords . '%')
@@ -417,6 +421,9 @@ class DeliveryController extends Controller
             {
                 $join->on('payment_terms.id', '=', 'delivery.payment_terms_id');
             })
+            ->whereIn('branches.id', 
+                explode(',', trim((new User)->select(['assignment'])->where('id', $user)->first()->assignment))
+            )
             ->where('delivery.is_active', 1)
             ->skip($start_from)->take($limit)
             ->orderBy('delivery.id', 'desc')
@@ -441,7 +448,8 @@ class DeliveryController extends Controller
     }
 
     public function get_page_count($limit, $start_from, $keywords = '')
-    {
+    {   
+        $user = Auth::user()->id;
         if (!empty($keywords)) {
             $res = Delivery::select([
                 'delivery.created_at',
@@ -472,6 +480,9 @@ class DeliveryController extends Controller
             {
                 $join->on('payment_terms.id', '=', 'delivery.payment_terms_id');
             })
+            ->whereIn('branches.id', 
+                explode(',', trim((new User)->select(['assignment'])->where('id', $user)->first()->assignment))
+            )
             ->where('delivery.is_active', 1)
             ->where(function($q) use ($keywords) {
                 $q->where('delivery.delivery_doc_no', 'like', '%' . $keywords . '%')
@@ -514,6 +525,9 @@ class DeliveryController extends Controller
             {
                 $join->on('payment_terms.id', '=', 'delivery.payment_terms_id');
             })
+            ->whereIn('branches.id', 
+                explode(',', trim((new User)->select(['assignment'])->where('id', $user)->first()->assignment))
+            )
             ->where('delivery.is_active', 1)
             ->orderBy('delivery.id', 'desc')
             ->count();
