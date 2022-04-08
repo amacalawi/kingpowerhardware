@@ -314,6 +314,7 @@
             var modal = $(this);
             modal.find('.modal-header h5').html('New delivery');
             modal.find('input, textarea').val('');
+            modal.find('#branch_id').prop('disabled', false);
             modal.find('select').select2().val('').trigger('change');
             modal.find('#next-btn').removeClass('hidden');
             modal.find('#prev-next-btn-holder button.prev').addClass('hidden');

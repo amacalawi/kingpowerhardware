@@ -532,7 +532,16 @@ class CustomerController extends Controller
     {   
         $fileName = 'customers_'.time().'.csv';
 
-        $customers = Customer::select(['customers.id', 'customers.code', 'customers.name', 'customers.description', 'customers.email', 'customers.mobile_no', 'customers.mobile_no', 'customers.agent_id'])
+        $customers = Customer::select([
+            'customers.id', 
+            'customers.code', 
+            'customers.name', 
+            'customers.description', 
+            'customers.email', 
+            'customers.mobile_no', 
+            'customers.address', 
+            'customers.agent_id'
+        ])
         ->join('users', function($join)
         {
             $join->on('users.id', '=', 'customers.agent_id');
