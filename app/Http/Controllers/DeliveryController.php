@@ -11,6 +11,7 @@ use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Delivery;
 use App\Models\DeliveryLine;
+use App\Models\DeliveryLinePosting;
 use App\Models\DeliveryDocPrintStart;
 use App\Models\Item;
 use App\Models\ItemInventory;
@@ -1234,6 +1235,18 @@ class DeliveryController extends Controller
         $deliveryLine = DeliveryLine::find($id);
 
         if(!$deliveryLine) {
+            throw new NotFoundHttpException();
+        }
+
+        $posting = DeliveryLinePosting::create([
+            'delivery_line_id' => $id,
+            'quantity' => $request->qty_to_post,
+            'date_delivered' => date('Y-m-d', strtotime($request->date_delivered)),
+            'created_at' => $timestamp,
+            'created_by' => Auth::user()->id
+        ]);
+
+        if (!$posting) {
             throw new NotFoundHttpException();
         }
         

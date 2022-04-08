@@ -74,6 +74,18 @@
                 $.delivery_report.load_contents(1);  
             }
         });
+
+        /*
+        | ---------------------------------
+        | # when paginate is clicked
+        | ---------------------------------
+        */
+        this.$body.on('click', '.pagination li:not([class="disabled"],[class="active"])', function (e) {
+            var page  = $(this).attr('p');   
+            if (page > 0) {
+                $.delivery_report.load_contents(page);
+            }
+        });
     }
 
     //init delivery_report
