@@ -95,7 +95,7 @@ class DeliveryController extends Controller
             'payment_terms_id' => $request->payment_terms_id,
             'agent_id' => $request->agent_id,
             'delivery_doc_no' => $drNo,
-            'contact_no' => $request->contact_no,
+            'contact_no' => ($request->contact_no) ? $request->contact_no : NULL,
             'address' => $request->address,
             'remarks' => $request->remarks,
             'created_at' => $timestamp,
@@ -163,7 +163,7 @@ class DeliveryController extends Controller
         $delivery->customer_id = $request->customer_id;
         $delivery->payment_terms_id = $request->payment_terms_id;
         $delivery->agent_id = $request->agent_id;
-        $delivery->contact_no = $request->contact_no;
+        $delivery->contact_no = ($request->contact_no) ? $request->contact_no : NULL;
         $delivery->address = $request->address;
         $delivery->remarks = $request->remarks;
         $delivery->updated_at = $timestamp;
