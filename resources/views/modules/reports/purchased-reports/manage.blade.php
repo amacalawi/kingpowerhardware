@@ -50,15 +50,15 @@
                         }}
                     </div>
                     <div class="col-sm-4">
-                        {{ Form::label('customer_id', 'Customer', ['class' => 'fs-6 fw-bold mb-2']) }}
+                        {{ Form::label('supplier_id', 'Supplier', ['class' => 'fs-6 fw-bold mb-2']) }}
                         {{
-                            Form::select('customer_id', $customers, '', ['data-control' => 'select2', 'data-placeholder' => 'select a customer', 'data-dropdown-parent' => '#delivery-reports-parent', 'id' => 'customer_id', 'class' => 'form-select form-select-solid fw-bolder'])
+                            Form::select('supplier_id', $suppliers, '', ['data-control' => 'select2', 'data-placeholder' => 'select a supplier', 'data-dropdown-parent' => '#delivery-reports-parent', 'id' => 'supplier_id', 'class' => 'form-select form-select-solid fw-bolder'])
                         }}
                     </div>
                     <div class="col-sm-4">
-                        {{ Form::label('agent_id', 'Agent', ['class' => 'fs-6 fw-bold mb-2']) }}
+                        {{ Form::label('purchase_order_type_id', 'Purchase Type', ['class' => 'fs-6 fw-bold mb-2']) }}
                         {{
-                            Form::select('agent_id', $agents, '', ['data-control' => 'select2', 'data-placeholder' => 'select an agent', 'data-dropdown-parent' => '#delivery-reports-parent', 'id' => 'agent_id', 'class' => 'form-select form-select-solid fw-bolder'])
+                            Form::select('purchase_order_type_id', $po_types, '', ['data-control' => 'select2', 'data-placeholder' => 'select a purchase type', 'data-dropdown-parent' => '#delivery-reports-parent', 'id' => 'purchase_order_type_id', 'class' => 'form-select form-select-solid fw-bolder'])
                         }}
                     </div>
                 </div>
@@ -120,5 +120,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/datatables/delivery-report.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('js/datatables/purchased-report.js') }}" type="text/javascript"></script>
 @endpush

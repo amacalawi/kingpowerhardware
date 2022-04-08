@@ -14,6 +14,7 @@ use App\Http\Controllers\AdjustmentController;
 use App\Http\Controllers\TransferItemController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DeliveryReportsController;
+use App\Http\Controllers\PurchasedReportsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -238,7 +239,11 @@ Route::prefix('auth')->group(function () {
         Route::prefix('delivery-reports')->group(function () {
             Route::get('',[DeliveryReportsController::class, 'index']);
             Route::get('search',[DeliveryReportsController::class, 'search']);
+        });
 
+        Route::prefix('purchased-reports')->group(function () {
+            Route::get('',[PurchasedReportsController::class, 'index']);
+            Route::get('search',[PurchasedReportsController::class, 'search']);
         });
     });
 });
