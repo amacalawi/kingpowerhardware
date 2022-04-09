@@ -892,7 +892,7 @@
         */
         this.$body.on('click', '#preview-preparation-btn', function (e) {
             e.preventDefault();
-            var url = base_url + 'auth/delivery/preview?document=preparation&dr_no=' + $('#delivery_doc_no').val();
+            var url = base_url + 'auth/delivery/preview?document=preparation&dr_no=' + $('#delivery_doc_no').val() + '&branch=' + $('#branch_id').val();
             window.open(url, "_blank");
         });
 
@@ -903,7 +903,7 @@
         */
         this.$body.on('click', '#preview-posting-btn', function (e) {
             e.preventDefault();
-            var url = base_url + 'auth/delivery/preview?document=posting&dr_no=' + $('#delivery_doc_no').val();
+            var url = base_url + 'auth/delivery/preview?document=posting&dr_no=' + $('#delivery_doc_no').val() + '&branch=' + $('#branch_id').val();
             window.open(url, "_blank");
         });
 

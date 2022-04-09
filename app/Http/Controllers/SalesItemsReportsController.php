@@ -52,7 +52,7 @@ class SalesItemsReportsController extends Controller
         $category     = $request->get('category');  
         $item         = $request->get('item');  
         $cur_page     = null != $request->post('page') ? $request->post('page') : 1;
-        $per_page     = 1 == -1 ? 0 : 1;
+        $per_page     = 10 == -1 ? 0 : 10;
         $page         = $cur_page !== null ? $cur_page : 1;
         $start_from   = ($page-1) * $per_page;
 
