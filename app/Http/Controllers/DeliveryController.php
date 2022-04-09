@@ -1372,7 +1372,8 @@ class DeliveryController extends Controller
         })
         ->where([
             'delivery.is_active' => 1,
-            'delivery.delivery_doc_no' => $request->get('dr_no')
+            'delivery.delivery_doc_no' => $request->get('dr_no'),
+            'delivery.branch_id' => $request->get('branch')
         ])
         ->first();
             
@@ -1399,7 +1400,8 @@ class DeliveryController extends Controller
         ->where('delivery_lines.posted_quantity', '>', 0)
         ->where([
             'delivery_lines.is_active' => 1,
-            'delivery.delivery_doc_no' => $request->get('dr_no')
+            'delivery.delivery_doc_no' => $request->get('dr_no'),
+            'delivery.branch_id' => $request->get('branch')
         ])
         ->get();
 
@@ -1424,7 +1426,8 @@ class DeliveryController extends Controller
         })
         ->where([
             'delivery_lines.is_active' => 1,
-            'delivery.delivery_doc_no' => $request->get('dr_no')
+            'delivery.delivery_doc_no' => $request->get('dr_no'),
+            'delivery.branch_id' => $request->get('branch')
         ])
         ->get();
 
