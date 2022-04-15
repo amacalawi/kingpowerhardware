@@ -25,4 +25,4 @@ CLONE Repository for King Power Hardware
 
 ### Project Site
 
-http://www.kingpowerhardware.com
+https://www.kingpowerhardware.com
