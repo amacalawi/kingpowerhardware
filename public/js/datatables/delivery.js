@@ -873,7 +873,7 @@
                             success: function(response) {
                                 var data = $.parseJSON(response); 
                                 $.delivery.load_delivery_contents(1, delivery_id);
-                                t.removeAttribute("data-kt-indicator");
+                                t3.removeAttribute("data-kt-indicator");
                                 $('#deliveryPostingForm')[0].reset();
                                 modal.modal('hide');
                                 t3.disabled = !1;

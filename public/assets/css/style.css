@@ -74,6 +74,16 @@ div.dataTables_paginate ul.pagination {
     white-space: nowrap;
 }
 
+#datatable-result2 a.btn-active-light-danger,
+#datatable-result2 a.btn-active-light-primary,
+#datatable-result2 a.btn-active-light-info,
+#datatable-result2 a.btn-active-light-warning,
+#datatable-result2 a.btn-active-light-success,
+#datatable-result3 a.btn-active-light-danger,
+#datatable-result3 a.btn-active-light-primary,
+#datatable-result3 a.btn-active-light-info,
+#datatable-result3 a.btn-active-light-warning,
+#datatable-result3 a.btn-active-light-success,
 #datatable-lines-result a.btn-active-light-danger,
 #datatable-lines-result a.btn-active-light-primary,
 #datatable-lines-result a.btn-active-light-info,
@@ -88,6 +98,8 @@ div.dataTables_paginate ul.pagination {
     margin: 0px 2.5px;
 }
 
+#datatable-result2 .svg-icon.svg-icon-2hx svg,
+#datatable-result3 .svg-icon.svg-icon-2hx svg,
 #datatable-lines-result .svg-icon.svg-icon-2hx svg,
 #datatable-result .svg-icon.svg-icon-2hx svg {
     width: 1.2rem !important;
@@ -99,7 +111,8 @@ div.dataTables_paginate ul.pagination {
     font-size: 1.2rem;
 }
 
-
+#datatable-result3 .btn .svg-icon,
+#datatable-result2 .btn .svg-icon,
 #datatable-lines-result .btn .svg-icon,
 #datatable-result .btn .svg-icon {
     margin-right: 0 !important;
@@ -156,6 +169,48 @@ label span {
 
 label span i {
     font-size: 1.5rem;
+}
+
+#paymentLineTable tr th:last-child,
+#paymentLineTable tr td:last-child {
+    width: 114px !important;
+}
+
+.accordion-item:last-of-type .accordion-buttons.collapsed {
+    border-bottom-right-radius: calc(0.475rem - 1px);
+    border-bottom-left-radius: calc(0.475rem - 1px);
+}
+.accordion-item:first-of-type .accordion-buttons {
+    border-top-left-radius: calc(0.475rem - 1px);
+    border-top-right-radius: calc(0.475rem - 1px);
+}
+.accordion-buttons:focus {
+    z-index: 3;
+    border-color: #eff2f5;
+    outline: 0;
+    box-shadow: none;
+}
+.accordion-buttons:hover {
+    z-index: 2;
+}
+.accordion-buttons {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 1.5rem 1.5rem;
+    font-size: 1rem;
+    color: #181c32;
+    text-align: left;
+    background-color: #fff;
+    border: 0;
+    border-radius: 0;
+    overflow-anchor: none;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out,border-radius .15s ease;
+}
+
+#roleModal .bg-secondary {
+    background: #f7f8fa !important;
 }
 
 @media (min-width: 768px) {
