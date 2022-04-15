@@ -16,6 +16,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DeliveryReportsController;
 use App\Http\Controllers\PurchasedReportsController;
 use App\Http\Controllers\SalesItemsReportsController;
+use App\Http\Controllers\BillingController;
+use App\Http\Controllers\RoleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +45,29 @@ Route::prefix('auth')->group(function () {
     /* Dashboard Routes */
     Route::prefix('dashboard')->group(function () {
         Route::get('', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    });
+
+    /* Delivery Routes */
+    Route::prefix('billing')->group(function () {
+        Route::get('',[BillingController::class, 'index']);
+        Route::get('all-active',[BillingController::class, 'all_active']);
+        Route::get('all-active-billing-lines',[BillingController::class, 'all_active_billing_lines']);
+        Route::get('all-active-payment-lines',[BillingController::class, 'all_active_payment_lines']);
+        Route::get('get-invoice-no/{branch?}/{invoice?}',[BillingController::class, 'get_invoice_no']);
+        Route::get('get-customer-info/{customer?}',[BillingController::class, 'get_customer_info']);
+        Route::get('get-due-date/{terms?}/{invoice_date?}',[BillingController::class, 'get_due_date']);
+        Route::post('store',[BillingController::class, 'store']);
+        Route::put('update/{id?}',[BillingController::class, 'update']);
+        Route::get('find/{id?}',[BillingController::class, 'find']);
+        Route::get('all-active-unbilled-lines',[BillingController::class, 'all_active_unbilled_lines']);
+        Route::post('attach/{id?}',[BillingController::class, 'attach']);
+        Route::put('remove-billing-line/{id?}',[BillingController::class, 'remove_billing_line']);
+        Route::get('get-bank-info/{id?}',[BillingController::class, 'get_bank_info']);
+        Route::post('store-payment-line/{id?}',[BillingController::class, 'store_payment_line']);
+        Route::put('update-payment-line/{id?}',[BillingController::class, 'update_payment_line']);
+        Route::get('find-payment-line/{id?}',[BillingController::class, 'find_payment_line']);
+        Route::put('remove-payment-line/{id?}',[BillingController::class, 'remove_payment_line']);
+        Route::put('post-payment-line/{id?}',[BillingController::class, 'post_payment_line']);
     });
 
     /* Delivery Routes */
@@ -204,6 +229,21 @@ Route::prefix('auth')->group(function () {
             Route::post('import',[PurchaseOrderTypeController::class, 'import']);
             Route::put('remove/{id?}',[PurchaseOrderTypeController::class, 'remove']);
             Route::put('restore/{id?}',[PurchaseOrderTypeController::class, 'restore']);
+        });
+
+        
+        Route::prefix('roles')->group(function () {
+            Route::get('',[RoleController::class, 'index']);
+            Route::get('all-active',[RoleController::class, 'all_active']);
+            Route::get('inactive',[RoleController::class, 'inactive']);
+            Route::get('all-inactive',[RoleController::class, 'all_inactive']);
+            Route::get('find/{id?}',[RoleController::class, 'find']);
+            Route::post('store',[RoleController::class, 'store']);
+            Route::put('update/{id?}',[RoleController::class, 'update']);
+            Route::get('export',[RoleController::class, 'export']);
+            Route::post('import',[RoleController::class, 'import']);
+            Route::put('remove/{id?}',[RoleController::class, 'remove']);
+            Route::put('restore/{id?}',[RoleController::class, 'restore']);
         });
 
         Route::prefix('users')->group(function () {
