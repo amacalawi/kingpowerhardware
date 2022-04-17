@@ -13,8 +13,8 @@
             </div>
             <!--end::Card header-->
             <!--begin::Card body-->
-            <form target="_blank" class="form ms-5 me-5" action="{{ url('/auth/reports/sales-item-reports/export')}}" id="salesItemReportform" method="GET">
-                <div id="sales-items-reports-parent" class="card-body pt-0">
+            <form target="_blank" class="form ms-5 me-5" action="{{ url('/auth/reports/collection-reports/export')}}" id="collectionReportForm" method="GET">
+                <div id="collection-reports-parent" class="card-body pt-0">
                     <div class="fv-row row mb-4">
                         <div class="col-sm-4">
                             {{ Form::label('dateFrom', 'Date From', ['class' => 'fs-6 fw-bold mb-2']) }}
@@ -37,34 +37,46 @@
                             }}
                         </div>
                         <div class="col-sm-4">
+                            {{ Form::label('payment_type_id', 'Payment Type', ['class' => 'fs-6 fw-bold mb-2']) }}
+                            {{
+                                Form::select('payment_type_id', $types, '', ['data-control' => 'select2', 'data-placeholder' => 'select a type', 'data-dropdown-parent' => '#collection-reports-parent', 'id' => 'type', 'class' => 'form-select form-select-solid fw-bolder'])
+                            }}
+                        </div>
+                    </div>
+                    <div class="fv-row row mb-4">
+                        <div class="col-sm-4">
                             {{ Form::label('branch_id', 'Branch', ['class' => 'fs-6 fw-bold mb-2']) }}
                             {{
-                                Form::select('branch_id', $branches, '', ['data-control' => 'select2', 'data-placeholder' => 'select a branch', 'data-dropdown-parent' => '#sales-items-reports-parent', 'id' => 'branch_id', 'class' => 'form-select form-select-solid fw-bolder'])
+                                Form::select('branch_id', $branches, '', ['data-control' => 'select2', 'data-placeholder' => 'select a branch', 'data-dropdown-parent' => '#collection-reports-parent', 'id' => 'branch_id', 'class' => 'form-select form-select-solid fw-bolder'])
+                            }}
+                        </div>
+                        <div class="col-sm-4">
+                            {{ Form::label('customer_id', 'Customer', ['class' => 'fs-6 fw-bold mb-2']) }}
+                            {{
+                                Form::select('customer_id', $customers, '', ['data-control' => 'select2', 'data-placeholder' => 'select a customer', 'data-dropdown-parent' => '#collection-reports-parent', 'id' => 'customer_id', 'class' => 'form-select form-select-solid fw-bolder'])
+                            }}
+                        </div>
+                        <div class="col-sm-4">
+                            {{ Form::label('agent_id', 'Agent', ['class' => 'fs-6 fw-bold mb-2']) }}
+                            {{
+                                Form::select('agent_id', $agents, '', ['data-control' => 'select2', 'data-placeholder' => 'select an agent', 'data-dropdown-parent' => '#collection-reports-parent', 'id' => 'agent_id', 'class' => 'form-select form-select-solid fw-bolder'])
                             }}
                         </div>
                     </div>
                     <div class="fv-row row mb-4">
-                        <div class="col-sm-6">
-                            {{ Form::label('item_category_id', 'Product Category', ['class' => 'fs-6 fw-bold mb-2']) }}
+                        <div class="col-sm-4">
+                            {{ Form::label('status', 'Status', ['class' => 'fs-6 fw-bold mb-2']) }}
                             {{
-                                Form::select('item_category_id', $categories, '', ['data-control' => 'select2', 'data-placeholder' => 'select a category', 'data-dropdown-parent' => '#sales-items-reports-parent', 'id' => 'item_category_id', 'class' => 'form-select form-select-solid fw-bolder'])
+                                Form::select('status', $statuses, '', ['data-control' => 'select2', 'data-placeholder' => 'select an status', 'data-dropdown-parent' => '#collection-reports-parent', 'id' => 'status', 'class' => 'form-select form-select-solid fw-bolder'])
                             }}
                         </div>
-                        <div class="col-sm-6">
-                            {{ Form::label('item_id', 'Item', ['class' => 'fs-6 fw-bold mb-2']) }}
-                            {{
-                                Form::select('item_id', $items, '', ['data-control' => 'select2', 'data-placeholder' => 'select an item', 'data-dropdown-parent' => '#sales-items-reports-parent', 'id' => 'item_id', 'class' => 'form-select form-select-solid fw-bolder'])
-                            }}
-                        </div>
-                    </div>
-                    <div class="fv-row row mb-4">
-                        <div class="col-sm-6">
+                        <div class="col-sm-4">
                             {{ Form::label('order_by', 'Order By', ['class' => 'fs-6 fw-bold mb-2']) }}
                             {{
-                                Form::select('order_by', $orderby, '', ['data-control' => 'select2', 'data-placeholder' => 'select an status', 'data-dropdown-parent' => '#sales-items-reports-parent', 'id' => 'order_by', 'class' => 'form-select form-select-solid fw-bolder'])
+                                Form::select('order_by', $orderby, '', ['data-control' => 'select2', 'data-placeholder' => 'select an status', 'data-dropdown-parent' => '#collection-reports-parent', 'id' => 'order_by', 'class' => 'form-select form-select-solid fw-bolder'])
                             }}
                         </div>
-                        <div class="col-sm-6">
+                        <div class="col-sm-4">
                             {{ Form::label('keywords', 'Keywords', ['class' => 'fs-6 fw-bold mb-2']) }}
                             {{ 
                                 Form::text($name = 'keywords', $value = '', 
@@ -122,5 +134,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/datatables/sales-items-report.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('js/datatables/collection-report.js') }}" type="text/javascript"></script>
 @endpush

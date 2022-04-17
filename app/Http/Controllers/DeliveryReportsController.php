@@ -15,6 +15,8 @@ use App\Models\DeliveryLine;
 use Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\File;
+use App\Exports\DeliveryReportExport;
+use Maatwebsite\Excel\Facades\Excel;
 // use App\Components\FlashMessages;
 // use App\Helper\Helper;
 
@@ -37,7 +39,7 @@ class DeliveryReportsController extends Controller
         $branches = (new Branch)->all_branches_selectpicker();
         $types = ['summary' => 'Summary', 'detailed' => 'Detailed'];
         $customers = (new Customer)->all_customer_selectpicker();
-        $statuses = ['' => 'Select a status', 'prepared' => 'Prepared', 'posted' => 'Posted', 'billed' => 'Billed'];
+        $statuses = ['' => 'Select a status', 'prepared' => 'Prepared', 'partial' => 'Partial', 'posted' => 'Posted', 'billed' => 'Billed'];
         $orderby = ['asc' => 'Ascending', 'desc' => 'Descending'];
         return view('modules/reports/delivery-reports/manage')->with(compact('customers', 'orderby', 'statuses', 'menus', 'agents', 'branches', 'types'));
     }
@@ -65,48 +67,56 @@ class DeliveryReportsController extends Controller
         $pagess = 0;
         $last_btn = true;
 
+        $query = $this->get_line_items($per_page, $start_from, $dateFrom, $dateTo, $type, $branch, $customer, $agent, $status, $orderby, $keywords);
+        $count = $this->get_page_count($dateFrom, $dateTo, $type, $branch, $customer, $agent, $status, $orderby, $keywords);
+        $sumAmt = $this->get_page_amount($dateFrom, $dateTo, $type, $branch, $customer, $agent, $status, $orderby, $keywords);
+        $no_of_paginations = ceil($count / $per_page);
+        $assets = url('assets/media/illustrations/work.png');
+
         $msg = "";
         
         $msg .= '<div class="table-responsive">';
-        $msg .= '<table class="table align-middle table-row-dashed fs-6 gy-5" id="customerTable">';
+        if ($type == 'summary') {
+            $msg .= '<table data-row-count="'.$count.'" class="table align-middle table-row-dashed fs-6 gy-3" id="deliveryReportTable">';
+        } else {
+            $msg .= '<table data-row-count="'.$count.'" class="table align-middle table-row-dashed fs-8 gy-3" id="deliveryReportTable">';
+        }
         $msg .= '<thead>';
             if ($type == 'summary') {
-                $msg .= '<tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">';
+                $msg .= '<tr class="text-start text-gray-400 fw-bolder fs-6 text-uppercase gs-0">';
                 $msg .= '<th class="text-center">Transaction Date</th>';
                 $msg .= '<th class="text-center">DR No</th>';
-                $msg .= '<th class="">Branch</th>';
+                $msg .= '<th class="text-center">Branch</th>';
                 $msg .= '<th class="">Customer</th>';
                 $msg .= '<th class="">Agent</th>';
-                $msg .= '<th class="text-center">Total Amount</th>';
                 $msg .= '<th class="text-center">Satus</th>';
+                $msg .= '<th class="text-center">Total</th>';
                 $msg .= '</tr>';
             } else {
                 $msg .= '<tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">';
                 $msg .= '<th class="text-center">Transaction Date</th>';
                 $msg .= '<th class="text-center">DR No</th>';
-                $msg .= '<th class="">Branch</th>';
+                $msg .= '<th class="text-center">Branch</th>';
                 $msg .= '<th class="">Customer</th>';
                 $msg .= '<th class="">Agent</th>';
                 $msg .= '<th class="">Items</th>';
                 $msg .= '<th class="text-center">Qty</th>';
                 $msg .= '<th class="text-center">UOM</th>';
                 $msg .= '<th class="text-center">SRP</th>';
-                $msg .= '<th class="text-center">Total Amount</th>';
+                $msg .= '<th class="text-center">PLUS</th>';
+                $msg .= '<th class="text-center">DISC1</th>';
+                $msg .= '<th class="text-center">DISC2</th>';
                 $msg .= '<th class="text-center">Satus</th>';
+                $msg .= '<th class="text-center">Total</th>';
                 $msg .= '</tr>';
             }
         $msg .= '</thead>';
         $msg .= '<tbody class="fw-bold text-gray-600">';
-        
-        $query = $this->get_line_items($per_page, $start_from, $dateFrom, $dateTo, $type, $branch, $customer, $agent, $status, $orderby, $keywords);
-        $count = $this->get_page_count($dateFrom, $dateTo, $type, $branch, $customer, $agent, $status, $orderby, $keywords);
-        $no_of_paginations = ceil($count / $per_page);
-        $assets = url('assets/media/illustrations/work.png');
 
         if($count <= 0)
         {
             $msg .= '<tr>';
-            $msg .= '<td colspan="8" class="text-center">there are no data has been displayed.<br/><br/><br/>';
+            $msg .= '<td colspan="20" class="text-center">there are no data has been displayed.<br/><br/><br/>';
             $msg .= '<img class="mw-100 mh-200px" alt="" src="'.$assets.'">';
             $msg .= '</td>';
             $msg .= '<tr>';
@@ -120,31 +130,47 @@ class DeliveryReportsController extends Controller
                     $msg .= '<tr data-row-id="'.$row->id.'" data-row-doc="'.$row->docNo.'">';
                     $msg .= '<td class="text-center">'.$row->transDate.'</td>';
                     $msg .= '<td class="text-center">'.$row->docNo.'</td>';
-                    $msg .= '<td>'.$row->branch.'</td>';
+                    $msg .= '<td class="text-center">'.$row->branch.'</td>';
                     $msg .= '<td>'.$row->customer.'</td>';
                     $msg .= '<td>'.$row->agent.'</td>';
-                    $msg .= '<td class="text-right">'.$totalAmt.'</td>';
                     $msg .= '<td class="text-center">'.$row->status.'</td>';
+                    $msg .= '<td class="text-right">'.$totalAmt.'</td>';
                     $msg .= '</tr>';
                 } else {
                     $totalAmt = number_format(floor(($row->total_amount*100))/100,2);
+                    $plus = ($row->plus > 0) ? $row->plus.'%' : '';
+                    $disc1 = ($row->disc1 > 0) ? $row->disc1.'%' : '';
+                    $disc2 = ($row->disc2 > 0) ? $row->disc2.'%' : '';
                     $msg .= '<tr data-row-id="'.$row->line_id.'" data-row-doc="'.$row->docNo.'">';
                     $msg .= '<td class="text-center">'.$row->transDate.'</td>';
                     $msg .= '<td class="text-center">'.$row->docNo.'</td>';
-                    $msg .= '<td>'.$row->branch.'</td>';
+                    $msg .= '<td class="text-center">'.$row->branch.'</td>';
                     $msg .= '<td>'.$row->customer.'</td>';
                     $msg .= '<td>'.$row->agent.'</td>';
                     $msg .= '<td>'.$row->item.'</td>';
                     $msg .= '<td class="text-center">'.$row->quantity.'</td>';
                     $msg .= '<td class="text-center">'.$row->uom.'</td>';
                     $msg .= '<td class="text-center">'.$row->srp.'</td>';
-                    $msg .= '<td class="text-right">'.$totalAmt.'</td>';
+                    $msg .= '<td class="text-right">'.$plus.'</td>';
+                    $msg .= '<td class="text-right">'.$disc1.'</td>';
+                    $msg .= '<td class="text-right">'.$disc2.'</td>';
                     $msg .= '<td class="text-center">'.$row->status.'</td>';
+                    $msg .= '<td class="text-right">'.$totalAmt.'</td>';
                     $msg .= '</tr>';
                 }
             }
         }
         $msg .= '</tbody>';
+        $msg .= '<tfoot>';
+        $msg .= '<tr class="fs-5">';
+        if ($type == 'summary') {
+            $msg .= '<td class="text-right" colspan="6"><strong>TOTAL AMOUNT:</strong></td>';
+        } else {
+            $msg .= '<td class="text-right" colspan="13"><strong>TOTAL AMOUNT:</strong></td>';
+        }
+        $msg .= '<td class="text-right text-danger"><strong>'.number_format(floor(($sumAmt*100))/100,2).'</strong></td>';
+        $msg .= '</tr>';
+        $msg .= '</tfoot>';
         $msg .= '</table>';
         $msg .= '</div>';
 
@@ -403,6 +429,14 @@ class DeliveryReportsController extends Controller
             ->get();
 
             return $res->map(function($del) use ($status) {
+
+                if ($status == 'posted' || $status == 'partial') {
+                    $srpVal = floatval($del->total_amount) / floatval($del->quantity);
+                    $totalAmt = floatval($del->posted_quantity) * floatval($srpVal);
+                } else {
+                    $totalAmt = $del->total_amount;
+                }
+
                 return (object) [
                     'id' => $del->id,
                     'transDate' => date('d-M-Y', strtotime($del->transDate)),
@@ -413,10 +447,10 @@ class DeliveryReportsController extends Controller
                     'branch' => $del->branch,
                     'customer' => $del->customer,
                     'item' => $del->itemCode.' - '.$del->itemName,
-                    'quantity' => ($status == 'posted') ? $del->posted_quantity : $del->quantity,
+                    'quantity' => ($status == 'posted' || $status == 'partial') ? $del->posted_quantity : $del->quantity,
                     'uom' => $del->uom,
                     'srp' => $del->srp,
-                    'total_amount' => $del->total_amount,
+                    'total_amount' => $totalAmt,
                     'disc1' => $del->disc1,
                     'disc2' => $del->disc2,
                     'plus' => $del->plus,
@@ -429,7 +463,7 @@ class DeliveryReportsController extends Controller
     public function get_page_count($dateFrom, $dateTo, $type, $branch, $customer, $agent, $status, $orderby, $keywords= '')
     {
         $dateFrom2 = date('Y-m-d', strtotime($dateFrom)).' 00:00:01';
-        $dateTo2   = date('Y-m-d', strtotime($dateTo)).'23:59:59';
+        $dateTo2   = date('Y-m-d', strtotime($dateTo)).' 23:59:59';
         if ($type == 'summary') {
             $res = Delivery::select([
                 'delivery.id as id',
@@ -591,11 +625,199 @@ class DeliveryReportsController extends Controller
             ->where('delivery.status', '!=', 'draft')
             ->where('delivery_lines.is_active', 1)
             ->orderBy('delivery_lines.id', $orderby)
-            // ->groupBy('delivery_lines.id')
             ->count();
         }
 
         return $res;
+    }
+
+    public function get_page_amount($dateFrom, $dateTo, $type, $branch, $customer, $agent, $status, $orderby, $keywords= '')
+    {
+        $dateFrom2 = date('Y-m-d', strtotime($dateFrom)).' 00:00:01';
+        $dateTo2   = date('Y-m-d', strtotime($dateTo)).' 23:59:59';
+        if ($type == 'summary') {
+            $res = Delivery::select([
+                'delivery.id as id',
+                'branches.name as branch',
+                'customers.name as customer',
+                'users.name as agent',
+                'delivery.delivery_doc_no as docNo',
+                'delivery.created_at as transDate',
+                'delivery.total_amount as totalAmt',
+                'delivery.status as status'
+            ])
+            ->leftJoin('users', function($join)
+            {
+                $join->on('users.id', '=', 'delivery.agent_id');
+            })
+            ->leftJoin('branches', function($join)
+            {
+                $join->on('branches.id', '=', 'delivery.branch_id');
+            })
+            ->leftJoin('customers', function($join)
+            {
+                $join->on('customers.id', '=', 'delivery.customer_id');
+            })
+            ->where(function($q) use ($keywords) {
+                if (!empty($keywords)) {
+                    $q->where('delivery.delivery_doc_no', 'like', '%' . $keywords . '%')
+                    ->orWhere('delivery.total_amount', 'like', '%' . $keywords . '%')
+                    ->orWhere('customers.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('branches.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('users.name', 'like', '%' . $keywords . '%');
+                }
+            })
+            ->where(function($q) use ($dateFrom, $dateTo, $dateFrom2, $dateTo2) {
+                if (!empty($dateFrom) && !empty($dateTo)) {
+                    $q->where('delivery.created_at', '>=', $dateFrom2)
+                        ->where('delivery.created_at', '<=', $dateTo2);
+                } else if (!empty($dateFrom) && empty($dateTo)) {
+                    $q->where('delivery.created_at', '=', $dateFrom);
+                } else if (empty($dateFrom) && !empty($dateTo)) {
+                    $q->where('delivery.created_at', '=', $dateTo);
+                }
+            })
+            ->where(function($q) use ($customer){
+                if ($customer != '') {
+                    $q->where('customers.id', '=',  $customer);
+                }
+            })
+            ->where(function($q) use ($agent){
+                if ($agent != '') {
+                    $q->where('users.id', '=',  $agent);
+                }
+            })
+            ->where(function($q) use ($branch){
+                if ($branch != '') {
+                    $q->where('branches.id', '=',  $branch);
+                }
+            })
+            ->where(function($q) use ($status){
+                if ($status != '') {
+                    $q->where("delivery.status", $status);
+                }
+            })
+            ->where('delivery.status', '!=', 'draft')
+            ->where('delivery.is_active', 1)
+            ->orderBy('delivery.id', $orderby)
+            ->sum('delivery.total_amount');
+        } else {
+            $res = DeliveryLine::select([
+                'delivery.id as id',
+                'branches.name as branch',
+                'customers.name as customer',
+                'users.name as agent',
+                'delivery.delivery_doc_no as docNo',
+                'delivery.created_at as transDate',
+                'delivery.total_amount as totalAmt',
+                'delivery.status as status',
+                'delivery_lines.id as lineID',
+                'items.name as itemName',
+                'items.code as itemCode',
+                'delivery_lines.quantity as quantity',
+                'delivery_lines.uom as uom',
+                'delivery_lines.srp as srp',
+                'delivery_lines.total_amount as total_amount',
+                'delivery_lines.discount1 as disc1',
+                'delivery_lines.discount2 as disc2',
+                'delivery_lines.plus as plus',
+                'delivery_lines.status as status2',
+                'delivery_lines.posted_quantity as posted_quantity',
+            ])
+            ->leftJoin('items', function($join)
+            {
+                $join->on('items.id', '=', 'delivery_lines.item_id');
+            })
+            ->leftJoin('delivery', function($join)
+            {
+                $join->on('delivery.id', '=', 'delivery_lines.delivery_id');
+            })
+            ->leftJoin('users', function($join)
+            {
+                $join->on('users.id', '=', 'delivery.agent_id');
+            })
+            ->leftJoin('branches', function($join)
+            {
+                $join->on('branches.id', '=', 'delivery.branch_id');
+            })
+            ->leftJoin('customers', function($join)
+            {
+                $join->on('customers.id', '=', 'delivery.customer_id');
+            })
+            ->where(function($q) use ($keywords) {
+                if (!empty($keywords)) {
+                    $q->where('delivery.delivery_doc_no', 'like', '%' . $keywords . '%')
+                    ->orWhere('delivery.total_amount', 'like', '%' . $keywords . '%')
+                    ->orWhere('customers.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('branches.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('users.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('delivery_lines.srp', 'like', '%' . $keywords . '%')
+                    ->orWhere('delivery_lines.uom', 'like', '%' . $keywords . '%')
+                    ->orWhere('delivery_lines.quantity', 'like', '%' . $keywords . '%')
+                    ->orWhere('delivery_lines.total_amount', 'like', '%' . $keywords . '%')
+                    ->orWhere('delivery_lines.discount1', 'like', '%' . $keywords . '%')
+                    ->orWhere('delivery_lines.discount2', 'like', '%' . $keywords . '%')
+                    ->orWhere('delivery_lines.plus', 'like', '%' . $keywords . '%')
+                    ->orWhere('delivery_lines.posted_quantity', 'like', '%' . $keywords . '%')
+                    ->orWhere('items.code', 'like', '%' . $keywords . '%')
+                    ->orWhere('items.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('items.description', 'like', '%' . $keywords . '%');
+                }
+            })
+            ->where(function($q) use ($dateFrom, $dateTo, $dateFrom2, $dateTo2) {
+                if (!empty($dateFrom) && !empty($dateTo)) {
+                    $q->where('delivery.created_at', '>=', $dateFrom2)
+                        ->where('delivery.created_at', '<=', $dateTo2);
+                } else if (!empty($dateFrom) && empty($dateTo)) {
+                    $q->where('delivery.created_at', '=', $dateFrom);
+                } else if (empty($dateFrom) && !empty($dateTo)) {
+                    $q->where('delivery.created_at', '=', $dateTo);
+                }
+            })
+            ->where(function($q) use ($customer){
+                if ($customer != '') {
+                    $q->where('customers.id', '=',  $customer);
+                }
+            })
+            ->where(function($q) use ($agent){
+                if ($agent != '') {
+                    $q->where('users.id', '=',  $agent);
+                }
+            })
+            ->where(function($q) use ($branch){
+                if ($branch != '') {
+                    $q->where('branches.id', '=',  $branch);
+                }
+            })
+            ->where(function($q) use ($status){
+                if ($status != '') {
+                    $q->where("delivery_lines.status", $status);
+                }
+            })
+            ->where('delivery.status', '!=', 'draft')
+            ->where('delivery_lines.is_active', 1)
+            ->orderBy('delivery_lines.id', $orderby)
+            ->get();
+
+            $totalAmt = 0;
+            foreach ($res as $line) {
+                if ($line->status2 == 'partial') {
+                    $srpVal = floatval($line->total_amount) / floatval($line->quantity);
+                    $totalAmt += floatval($line->posted_quantity) * floatval($srpVal);
+                } else {
+                    $totalAmt += floatval($line->total_amount);
+                }
+            }
+            
+            return $totalAmt;
+        }
+
+        return $res;
+    }
+
+    public function export(Request $request)
+    {
+        return Excel::download(new DeliveryReportExport($request), 'delivery_report_'.time().'.xlsx');
     }
 
     public function audit_logs($entity, $entity_id, $description, $data, $timestamp, $user)

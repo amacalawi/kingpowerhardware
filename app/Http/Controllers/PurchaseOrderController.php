@@ -1330,7 +1330,8 @@ class PurchaseOrderController extends Controller
         })
         ->where([
             'purchase_orders.is_active' => 1, 
-            'po_no' => $request->get('po_no')
+            'purchase_orders.po_no' => $request->get('po_no'),
+            'branches.id' => $request->get('branch')
         ])
         ->first();
 
@@ -1493,13 +1494,26 @@ class PurchaseOrderController extends Controller
                 $totalAmt += floatval($amount);
                 $srp = number_format(floor(($line->srp*100))/100,2);
             }
-            $tbl .= '<tr>';
-            $tbl .= '<td align="center" width="12%">'.$line->quantity.'</td>';
-            $tbl .= '<td align="center" width="7%">'.$line->uom.'</td>';
-            $tbl .= '<td align="left" width="45%">'.$line->itemCode.' - '.$line->itemName.'</td>';
-            $tbl .= '<td align="right" width="15%">'.$srp.'</td>';
-            $tbl .= '<td align="right" width="21%">'.$total.'</td>';
-            $tbl .= '</tr>';
+
+            if ($request->get('document') == 'preparation') {
+                $tbl .= '<tr>';
+                $tbl .= '<td align="center" width="12%">'.$line->quantity.'</td>';
+                $tbl .= '<td align="center" width="7%">'.$line->uom.'</td>';
+                $tbl .= '<td align="left" width="45%">'.$line->itemCode.' - '.$line->itemName.'</td>';
+                $tbl .= '<td align="right" width="15%">'.$srp.'</td>';
+                $tbl .= '<td align="right" width="21%">'.$total.'</td>';
+                $tbl .= '</tr>';
+            } else {
+                if (floatval($line->posted_quantity) > 0) {
+                    $tbl .= '<tr>';
+                    $tbl .= '<td align="center" width="12%">'.$line->posted_quantity.'</td>';
+                    $tbl .= '<td align="center" width="7%">'.$line->uom.'</td>';
+                    $tbl .= '<td align="left" width="45%">'.$line->itemCode.' - '.$line->itemName.'</td>';
+                    $tbl .= '<td align="right" width="15%">'.$srp.'</td>';
+                    $tbl .= '<td align="right" width="21%">'.$total.'</td>';
+                    $tbl .= '</tr>';
+                }
+            }
         }
         $tbl .=' </tbody>
         </table>';
