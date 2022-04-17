@@ -15,9 +15,11 @@ use App\Http\Controllers\TransferItemController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DeliveryReportsController;
 use App\Http\Controllers\PurchasedReportsController;
-use App\Http\Controllers\SalesItemsReportsController;
+use App\Http\Controllers\SalesItemReportsController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\TransferItemReportsController;
+use App\Http\Controllers\CollectionReportsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -280,16 +282,31 @@ Route::prefix('auth')->group(function () {
         Route::prefix('delivery-reports')->group(function () {
             Route::get('',[DeliveryReportsController::class, 'index']);
             Route::get('search',[DeliveryReportsController::class, 'search']);
+            Route::get('export',[DeliveryReportsController::class, 'export']);
         });
 
         Route::prefix('purchased-reports')->group(function () {
             Route::get('',[PurchasedReportsController::class, 'index']);
             Route::get('search',[PurchasedReportsController::class, 'search']);
+            Route::get('export',[PurchasedReportsController::class, 'export']);
         });
 
-        Route::prefix('sales-items-reports')->group(function () {
-            Route::get('',[SalesItemsReportsController::class, 'index']);
-            Route::get('search',[SalesItemsReportsController::class, 'search']);
+        Route::prefix('sales-item-reports')->group(function () {
+            Route::get('',[SalesItemReportsController::class, 'index']);
+            Route::get('search',[SalesItemReportsController::class, 'search']);
+            Route::get('export',[SalesItemReportsController::class, 'export']);
+        });
+
+        Route::prefix('transfer-item-reports')->group(function () {
+            Route::get('',[TransferItemReportsController::class, 'index']);
+            Route::get('search',[TransferItemReportsController::class, 'search']);
+            Route::get('export',[TransferItemReportsController::class, 'export']);
+        });
+
+        Route::prefix('collection-reports')->group(function () {
+            Route::get('',[CollectionReportsController::class, 'index']);
+            Route::get('search',[CollectionReportsController::class, 'search']);
+            Route::get('export',[CollectionReportsController::class, 'export']);
         });
     });
 });

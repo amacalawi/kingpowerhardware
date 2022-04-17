@@ -5,7 +5,17 @@
         <!--begin::Page title-->
         <div data-kt-place="true" data-kt-place-mode="prepend" data-kt-place-parent="{default: '#kt_content_container', 'lg': '#kt_toolbar_container'}" class="page-title d-flex align-items-center me-3 flex-wrap mb-5 mb-lg-0 lh-1">
             <!--begin::Title-->
-            <h1 class="d-flex align-items-center text-dark fw-bolder my-1 fs-3">{{ ucwords(str_replace('-',' ',Request::segment(3))) }} </h1>
+            <h1 class="d-flex align-items-center text-dark fw-bolder my-1 fs-3">
+                @if (strtolower(Request::segment(2)) == 'components')
+                    {{ ucwords(str_replace('-',' ',Request::segment(3))) }} 
+                @else
+                    @if (strlen(Request::segment(3)) > 0) 
+                        {{ ucwords(str_replace('-',' ',Request::segment(2))) }} - {{ ucwords(str_replace('-',' ',Request::segment(3))) }}
+                    @else
+                        {{ ucwords(str_replace('-',' ',Request::segment(2))) }}
+                    @endif
+                @endif
+            </h1>
             <!--end::Title-->
         </div>
         <!--end::Page title-->

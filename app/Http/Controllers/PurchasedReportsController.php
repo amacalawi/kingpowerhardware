@@ -16,8 +16,11 @@ use App\Models\PurchaseOrderType;
 use Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\File;
+use App\Exports\PurchasedReportExport;
+use Maatwebsite\Excel\Facades\Excel;
 // use App\Components\FlashMessages;
 // use App\Helper\Helper;
+use DB;
 
 class PurchasedReportsController extends Controller
 {   
@@ -65,21 +68,31 @@ class PurchasedReportsController extends Controller
         $first_btn = true;
         $pagess = 0;
         $last_btn = true;
+        
+        $query = $this->get_line_items($per_page, $start_from, $dateFrom, $dateTo, $type, $branch, $supplier, $po_type, $status, $orderby, $keywords);
+        $count = $this->get_page_count($dateFrom, $dateTo, $type, $branch, $supplier, $po_type, $status, $orderby, $keywords);
+        $sumAmt = $this->get_page_amount($dateFrom, $dateTo, $type, $branch, $supplier, $po_type, $status, $orderby, $keywords);
+        $no_of_paginations = ceil($count / $per_page);
+        $assets = url('assets/media/illustrations/work.png');
 
         $msg = "";
         
         $msg .= '<div class="table-responsive">';
-        $msg .= '<table class="table align-middle table-row-dashed fs-6 gy-5" id="customerTable">';
+        if ($type == 'summary') {
+            $msg .= '<table data-row-count="'.$count.'" class="table align-middle table-row-dashed fs-6 gy-3" id="purchasedReportTable">';
+        } else {
+            $msg .= '<table data-row-count="'.$count.'" class="table align-middle table-row-dashed fs-8 gy-3" id="purchasedReportTable">';
+        }
         $msg .= '<thead>';
             if ($type == 'summary') {
-                $msg .= '<tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">';
+                $msg .= '<tr class="text-start text-gray-400 fw-bolder fs-6 text-uppercase gs-0">';
                 $msg .= '<th class="text-center">Transaction Date</th>';
                 $msg .= '<th class="text-center">PO No</th>';
                 $msg .= '<th class="">Branch</th>';
                 $msg .= '<th class="">Supplier</th>';
                 $msg .= '<th class="">Type</th>';
-                $msg .= '<th class="text-center">Total Amount</th>';
                 $msg .= '<th class="text-center">Satus</th>';
+                $msg .= '<th class="text-center">Total Amount</th>';
                 $msg .= '</tr>';
             } else {
                 $msg .= '<tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">';
@@ -92,17 +105,12 @@ class PurchasedReportsController extends Controller
                 $msg .= '<th class="text-center">Qty</th>';
                 $msg .= '<th class="text-center">UOM</th>';
                 $msg .= '<th class="text-center">SRP</th>';
-                $msg .= '<th class="text-center">Total Amount</th>';
                 $msg .= '<th class="text-center">Satus</th>';
+                $msg .= '<th class="text-center">Total Amount</th>';
                 $msg .= '</tr>';
             }
         $msg .= '</thead>';
         $msg .= '<tbody class="fw-bold text-gray-600">';
-        
-        $query = $this->get_line_items($per_page, $start_from, $dateFrom, $dateTo, $type, $branch, $supplier, $po_type, $status, $orderby, $keywords);
-        $count = $this->get_page_count($dateFrom, $dateTo, $type, $branch, $supplier, $po_type, $status, $orderby, $keywords);
-        $no_of_paginations = ceil($count / $per_page);
-        $assets = url('assets/media/illustrations/work.png');
 
         if($count <= 0)
         {
@@ -122,10 +130,10 @@ class PurchasedReportsController extends Controller
                     $msg .= '<td class="text-center">'.$row->transDate.'</td>';
                     $msg .= '<td class="text-center">'.$row->poNo.'</td>';
                     $msg .= '<td>'.$row->branch.'</td>';
-                    $msg .= '<td>'.$row->customer.'</td>';
+                    $msg .= '<td>'.$row->supplier.'</td>';
                     $msg .= '<td>'.$row->po_type.'</td>';
-                    $msg .= '<td class="text-right">'.$totalAmt.'</td>';
                     $msg .= '<td class="text-center">'.$row->status.'</td>';
+                    $msg .= '<td class="text-right">'.$totalAmt.'</td>';
                     $msg .= '</tr>';
                 } else {
                     $totalAmt = number_format(floor(($row->total_amount*100))/100,2);
@@ -133,19 +141,29 @@ class PurchasedReportsController extends Controller
                     $msg .= '<td class="text-center">'.$row->transDate.'</td>';
                     $msg .= '<td class="text-center">'.$row->poNo.'</td>';
                     $msg .= '<td>'.$row->branch.'</td>';
-                    $msg .= '<td>'.$row->customer.'</td>';
+                    $msg .= '<td>'.$row->supplier.'</td>';
                     $msg .= '<td>'.$row->po_type.'</td>';
                     $msg .= '<td>'.$row->item.'</td>';
                     $msg .= '<td class="text-center">'.$row->quantity.'</td>';
                     $msg .= '<td class="text-center">'.$row->uom.'</td>';
                     $msg .= '<td class="text-center">'.$row->srp.'</td>';
-                    $msg .= '<td class="text-right">'.$totalAmt.'</td>';
                     $msg .= '<td class="text-center">'.$row->status.'</td>';
+                    $msg .= '<td class="text-right">'.$totalAmt.'</td>';
                     $msg .= '</tr>';
                 }
             }
         }
         $msg .= '</tbody>';
+        $msg .= '<tfoot>';
+        $msg .= '<tr class="fs-5">';
+        if ($type == 'summary') {
+            $msg .= '<td class="text-right" colspan="6"><strong>TOTAL AMOUNT:</strong></td>';
+        } else {
+            $msg .= '<td class="text-right" colspan="10"><strong>TOTAL AMOUNT:</strong></td>';
+        }
+        $msg .= '<td class="text-right text-danger"><strong>'.number_format(floor(($sumAmt*100))/100,2).'</strong></td>';
+        $msg .= '</tr>';
+        $msg .= '</tfoot>';
         $msg .= '</table>';
         $msg .= '</div>';
 
@@ -227,7 +245,7 @@ class PurchasedReportsController extends Controller
             $res = PurchaseOrder::select([
                 'purchase_orders.id as id',
                 'branches.name as branch',
-                'suppliers.name as customer',
+                'suppliers.name as supplier',
                 'purchase_orders_types.name as po_type',
                 'purchase_orders.po_no as poNo',
                 'purchase_orders.created_at as transDate',
@@ -300,14 +318,14 @@ class PurchasedReportsController extends Controller
                     'status' => $del->status,
                     'po_type' => $del->po_type,
                     'branch' => $del->branch,
-                    'customer' => $del->customer
+                    'supplier' => $del->supplier
                 ];
             });
         } else {
             $res = PurchaseOrderLine::select([
                 'purchase_orders.id as id',
                 'branches.name as branch',
-                'suppliers.name as customer',
+                'suppliers.name as supplier',
                 'purchase_orders_types.name as po_type',
                 'purchase_orders.po_no as poNo',
                 'purchase_orders.created_at as transDate',
@@ -411,7 +429,7 @@ class PurchasedReportsController extends Controller
                     'status' => $del->status,
                     'po_type' => $del->po_type,
                     'branch' => $del->branch,
-                    'customer' => $del->customer,
+                    'supplier' => $del->supplier,
                     'item' => $del->itemCode.' - '.$del->itemName,
                     'quantity' => ($status == 'posted') ? $del->posted_quantity : $del->quantity,
                     'uom' => $del->uom,
@@ -426,7 +444,7 @@ class PurchasedReportsController extends Controller
     public function get_page_count($dateFrom, $dateTo, $type, $branch, $supplier, $po_type, $status, $orderby, $keywords= '')
     {
         $dateFrom2 = date('Y-m-d', strtotime($dateFrom)).' 00:00:01';
-        $dateTo2   = date('Y-m-d', strtotime($dateTo)).'23:59:59';
+        $dateTo2   = date('Y-m-d', strtotime($dateTo)).' 23:59:59';
         if ($type == 'summary') {
             $res = PurchaseOrder::select([
                 'purchase_orders.id as id',
@@ -592,11 +610,160 @@ class PurchasedReportsController extends Controller
             ->where('purchase_orders.status', '!=', 'draft')
             ->where('purchase_orders_lines.is_active', 1)
             ->orderBy('purchase_orders_lines.id', $orderby)
-            // ->groupBy('purchase_orders_lines.id')
             ->count();
         }
 
         return $res;
+    }
+
+    public function get_page_amount($dateFrom, $dateTo, $type, $branch, $supplier, $po_type, $status, $orderby, $keywords= '')
+    {
+        $dateFrom2 = date('Y-m-d', strtotime($dateFrom)).' 00:00:01';
+        $dateTo2   = date('Y-m-d', strtotime($dateTo)).'23:59:59';
+
+        if ($type == 'summary') {
+            $res = PurchaseOrder::leftJoin('purchase_orders_types', function($join)
+            {
+                $join->on('purchase_orders_types.id', '=', 'purchase_orders.purchase_order_type_id');
+            })
+            ->leftJoin('branches', function($join)
+            {
+                $join->on('branches.id', '=', 'purchase_orders.branch_id');
+            })
+            ->leftJoin('suppliers', function($join)
+            {
+                $join->on('suppliers.id', '=', 'purchase_orders.supplier_id');
+            })
+            ->where(function($q) use ($keywords) {
+                if (!empty($keywords)) {
+                    $q->where('purchase_orders.po_no', 'like', '%' . $keywords . '%')
+                    ->orWhere('purchase_orders.total_amount', 'like', '%' . $keywords . '%')
+                    ->orWhere('suppliers.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('branches.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('purchase_orders_types.name', 'like', '%' . $keywords . '%');
+                }
+            })
+            ->where(function($q) use ($dateFrom, $dateTo, $dateFrom2, $dateTo2) {
+                if (!empty($dateFrom) && !empty($dateTo)) {
+                    $q->where('purchase_orders.created_at', '>=', $dateFrom2)
+                        ->where('purchase_orders.created_at', '<=', $dateTo2);
+                } else if (!empty($dateFrom) && empty($dateTo)) {
+                    $q->where('purchase_orders.created_at', '=', $dateFrom);
+                } else if (empty($dateFrom) && !empty($dateTo)) {
+                    $q->where('purchase_orders.created_at', '=', $dateTo);
+                }
+            })
+            ->where(function($q) use ($supplier){
+                if ($supplier != '') {
+                    $q->where('suppliers.id', '=',  $supplier);
+                }
+            })
+            ->where(function($q) use ($po_type){
+                if ($po_type != '') {
+                    $q->where('purchase_orders_types.id', '=',  $po_type);
+                }
+            })
+            ->where(function($q) use ($branch){
+                if ($branch != '') {
+                    $q->where('branches.id', '=',  $branch);
+                }
+            })
+            ->where(function($q) use ($status){
+                if ($status != '') {
+                    $q->where("purchase_orders.status", $status);
+                }
+            })
+            ->where('purchase_orders.status', '!=', 'draft')
+            ->where('purchase_orders.is_active', 1)
+            ->orderBy('purchase_orders.id', $orderby)
+            ->sum('purchase_orders.total_amount');
+        } else {
+            $res = PurchaseOrderLine::leftJoin('items', function($join)
+            {
+                $join->on('items.id', '=', 'purchase_orders_lines.item_id');
+            })
+            ->leftJoin('unit_of_measurements', function($join)
+            {
+                $join->on('unit_of_measurements.id', '=', 'purchase_orders_lines.uom_id');
+            })
+            ->leftJoin('purchase_orders', function($join)
+            {
+                $join->on('purchase_orders.id', '=', 'purchase_orders_lines.purchase_order_id');
+            })
+            ->leftJoin('purchase_orders_types', function($join)
+            {
+                $join->on('purchase_orders_types.id', '=', 'purchase_orders.purchase_order_type_id');
+            })
+            ->leftJoin('branches', function($join)
+            {
+                $join->on('branches.id', '=', 'purchase_orders.branch_id');
+            })
+            ->leftJoin('suppliers', function($join)
+            {
+                $join->on('suppliers.id', '=', 'purchase_orders.supplier_id');
+            })
+            ->where(function($q) use ($keywords) {
+                if (!empty($keywords)) {
+                    $q->where('purchase_orders.po_no', 'like', '%' . $keywords . '%')
+                    ->orWhere('purchase_orders.total_amount', 'like', '%' . $keywords . '%')
+                    ->orWhere('suppliers.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('branches.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('purchase_orders_types.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('purchase_orders_lines.srp', 'like', '%' . $keywords . '%')
+                    ->orWhere('unit_of_measurements.code', 'like', '%' . $keywords . '%')
+                    ->orWhere('purchase_orders_lines.quantity', 'like', '%' . $keywords . '%')
+                    ->orWhere('purchase_orders_lines.total_amount', 'like', '%' . $keywords . '%')
+                    ->orWhere('purchase_orders_lines.discount1', 'like', '%' . $keywords . '%')
+                    ->orWhere('purchase_orders_lines.discount2', 'like', '%' . $keywords . '%')
+                    ->orWhere('purchase_orders_lines.plus', 'like', '%' . $keywords . '%')
+                    ->orWhere('purchase_orders_lines.posted_quantity', 'like', '%' . $keywords . '%')
+                    ->orWhere('items.code', 'like', '%' . $keywords . '%')
+                    ->orWhere('items.name', 'like', '%' . $keywords . '%')
+                    ->orWhere('items.description', 'like', '%' . $keywords . '%');
+                }
+            })
+            ->where(function($q) use ($dateFrom, $dateTo, $dateFrom2, $dateTo2) {
+                if (!empty($dateFrom) && !empty($dateTo)) {
+                    $q->where('purchase_orders.created_at', '>=', $dateFrom2)
+                        ->where('purchase_orders.created_at', '<=', $dateTo2);
+                } else if (!empty($dateFrom) && empty($dateTo)) {
+                    $q->where('purchase_orders.created_at', '=', $dateFrom);
+                } else if (empty($dateFrom) && !empty($dateTo)) {
+                    $q->where('purchase_orders.created_at', '=', $dateTo);
+                }
+            })
+            ->where(function($q) use ($supplier){
+                if ($supplier != '') {
+                    $q->where('suppliers.id', '=',  $supplier);
+                }
+            })
+            ->where(function($q) use ($po_type){
+                if ($po_type != '') {
+                    $q->where('purchase_orders_types.id', '=',  $po_type);
+                }
+            })
+            ->where(function($q) use ($branch){
+                if ($branch != '') {
+                    $q->where('branches.id', '=',  $branch);
+                }
+            })
+            ->where(function($q) use ($status){
+                if ($status != '') {
+                    $q->where("purchase_orders_lines.status", $status);
+                }
+            })
+            ->where('purchase_orders.status', '!=', 'draft')
+            ->where('purchase_orders_lines.is_active', 1)
+            ->orderBy('purchase_orders_lines.id', $orderby)
+            ->sum('purchase_orders_lines.total_amount');
+        }
+
+        return $res;
+    }
+
+    public function export(Request $request)
+    {
+        return Excel::download(new PurchasedReportExport($request), 'purchased_report_'.time().'.xlsx');
     }
 
     public function audit_logs($entity, $entity_id, $description, $data, $timestamp, $user)

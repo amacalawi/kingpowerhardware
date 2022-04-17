@@ -13,10 +13,10 @@
             </div>
             <!--end::Card header-->
             <!--begin::Card body-->
-            <form target="_blank" class="form ms-5 me-5" action="{{ url('/auth/reports/sales-item-reports/export')}}" id="salesItemReportform" method="GET">
-                <div id="sales-items-reports-parent" class="card-body pt-0">
+            <form target="_blank" class="form ms-5 me-5" action="{{ url('/auth/reports/transfer-item-reports/export')}}" id="transferItemReportForm" method="GET">
+                <div id="transfer-item-reports-parent" class="card-body pt-0">
                     <div class="fv-row row mb-4">
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             {{ Form::label('dateFrom', 'Date From', ['class' => 'fs-6 fw-bold mb-2']) }}
                             {{ 
                                 Form::text($name = 'dateFrom', $value = '', 
@@ -26,7 +26,7 @@
                                 )) 
                             }}
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             {{ Form::label('dateTo', 'Date To', ['class' => 'fs-6 fw-bold mb-2']) }}
                             {{ 
                                 Form::text($name = 'dateTo', $value = '', 
@@ -36,10 +36,18 @@
                                 )) 
                             }}
                         </div>
-                        <div class="col-sm-4">
-                            {{ Form::label('branch_id', 'Branch', ['class' => 'fs-6 fw-bold mb-2']) }}
+                    </div>
+                    <div class="fv-row row mb-4">
+                        <div class="col-sm-6">
+                            {{ Form::label('transfer_from', 'Transfer From', ['class' => 'fs-6 fw-bold mb-2']) }}
                             {{
-                                Form::select('branch_id', $branches, '', ['data-control' => 'select2', 'data-placeholder' => 'select a branch', 'data-dropdown-parent' => '#sales-items-reports-parent', 'id' => 'branch_id', 'class' => 'form-select form-select-solid fw-bolder'])
+                                Form::select('transfer_from', $branches, '', ['data-control' => 'select2', 'data-placeholder' => 'select a branch from', 'data-dropdown-parent' => '#transfer-item-reports-parent', 'id' => 'transfer_from', 'class' => 'form-select form-select-solid fw-bolder'])
+                            }}
+                        </div>
+                        <div class="col-sm-6">
+                            {{ Form::label('transfer_to', 'Transfer To', ['class' => 'fs-6 fw-bold mb-2']) }}
+                            {{
+                                Form::select('transfer_to', $branches, '', ['data-control' => 'select2', 'data-placeholder' => 'select a branch to', 'data-dropdown-parent' => '#transfer-item-reports-parent', 'id' => 'transfer_to', 'class' => 'form-select form-select-solid fw-bolder'])
                             }}
                         </div>
                     </div>
@@ -47,24 +55,30 @@
                         <div class="col-sm-6">
                             {{ Form::label('item_category_id', 'Product Category', ['class' => 'fs-6 fw-bold mb-2']) }}
                             {{
-                                Form::select('item_category_id', $categories, '', ['data-control' => 'select2', 'data-placeholder' => 'select a category', 'data-dropdown-parent' => '#sales-items-reports-parent', 'id' => 'item_category_id', 'class' => 'form-select form-select-solid fw-bolder'])
+                                Form::select('item_category_id', $categories, '', ['data-control' => 'select2', 'data-placeholder' => 'select a category', 'data-dropdown-parent' => '#transfer-item-reports-parent', 'id' => 'item_category_id', 'class' => 'form-select form-select-solid fw-bolder'])
                             }}
                         </div>
                         <div class="col-sm-6">
                             {{ Form::label('item_id', 'Item', ['class' => 'fs-6 fw-bold mb-2']) }}
                             {{
-                                Form::select('item_id', $items, '', ['data-control' => 'select2', 'data-placeholder' => 'select an item', 'data-dropdown-parent' => '#sales-items-reports-parent', 'id' => 'item_id', 'class' => 'form-select form-select-solid fw-bolder'])
+                                Form::select('item_id', $items, '', ['data-control' => 'select2', 'data-placeholder' => 'select an item', 'data-dropdown-parent' => '#transfer-item-reports-parent', 'id' => 'item_id', 'class' => 'form-select form-select-solid fw-bolder'])
                             }}
                         </div>
                     </div>
                     <div class="fv-row row mb-4">
-                        <div class="col-sm-6">
-                            {{ Form::label('order_by', 'Order By', ['class' => 'fs-6 fw-bold mb-2']) }}
+                        <div class="col-sm-4">
+                            {{ Form::label('status', 'Status', ['class' => 'fs-6 fw-bold mb-2']) }}
                             {{
-                                Form::select('order_by', $orderby, '', ['data-control' => 'select2', 'data-placeholder' => 'select an status', 'data-dropdown-parent' => '#sales-items-reports-parent', 'id' => 'order_by', 'class' => 'form-select form-select-solid fw-bolder'])
+                                Form::select('status', $statuses, '', ['data-control' => 'select2', 'data-placeholder' => 'select an status', 'data-dropdown-parent' => '#transfer-item-reports-parent', 'id' => 'status', 'class' => 'form-select form-select-solid fw-bolder'])
                             }}
                         </div>
-                        <div class="col-sm-6">
+                        <div class="col-sm-4">
+                            {{ Form::label('order_by', 'Order By', ['class' => 'fs-6 fw-bold mb-2']) }}
+                            {{
+                                Form::select('order_by', $orderby, '', ['data-control' => 'select2', 'data-placeholder' => 'select an status', 'data-dropdown-parent' => '#transfer-item-reports-parent', 'id' => 'order_by', 'class' => 'form-select form-select-solid fw-bolder'])
+                            }}
+                        </div>
+                        <div class="col-sm-4">
                             {{ Form::label('keywords', 'Keywords', ['class' => 'fs-6 fw-bold mb-2']) }}
                             {{ 
                                 Form::text($name = 'keywords', $value = '', 
@@ -122,5 +136,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/datatables/sales-items-report.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('js/datatables/transfer-item-report.js') }}" type="text/javascript"></script>
 @endpush

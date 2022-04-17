@@ -1284,6 +1284,8 @@ class DeliveryController extends Controller
             $deliveryLine->posted_quantity = $postedQuantity;
             if (floatval($postedQuantity) == floatval($deliveryLine->quantity)) {
                 $deliveryLine->status = 'posted';
+            } else {
+                $deliveryLine->status = 'partial';
             }
             $deliveryLine->updated_at = $timestamp;
             $deliveryLine->updated_by = Auth::user()->id;

@@ -369,7 +369,7 @@
         $.billing.load_payment_contents(1, $('#billing_id').val());
         $.billing.load_billing_contents(1, $('#billing_id').val());
         
-        $("#countered_date, #cheque_date").flatpickr({
+        $("#countered_date, #cheque_date, #invoice_date").flatpickr({
             dateFormat: "d-M-Y"
         });
 

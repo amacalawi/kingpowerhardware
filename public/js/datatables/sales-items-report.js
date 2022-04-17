@@ -13,7 +13,7 @@
     sales_items_report.prototype.load_contents = function(track_page) 
     {   
         var keywords = '?dateFrom=' + $('#dateFrom').val() + '&dateTo=' + $('#dateTo').val() + '&category=' + $('#item_category_id').val() + '&branch=' + $('#branch_id').val() + '&item=' + $('#item_id').val() + '&orderby=' + $('#order_by').val() + '&keywords=' + $('#keywords').val();
-        var urls = base_url + 'auth/reports/sales-items-reports/search';
+        var urls = base_url + 'auth/reports/sales-item-reports/search';
         var me = $(this);
         var $portlet = $('#datatable-result');
 
@@ -84,6 +84,27 @@
             var page  = $(this).attr('p');   
             if (page > 0) {
                 $.sales_items_report.load_contents(page);
+            }
+        });
+
+        /*
+        | ---------------------------------
+        | # when export button is clicked
+        | ---------------------------------
+        */
+        this.$body.on('click', '.btn-export', function (e) {
+            e.preventDefault();
+            var count = $('body #salesItemReportTable').attr('data-row-count');
+            var form = $('#salesItemReportform');
+
+            if (count > 0) {
+                form.submit();
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    html: "Oops!<br/>Theres no record can be export.",
+                    customClass: { confirmButton: "btn btn-warning", cancelButton: "btn btn-active-light" }
+                });
             }
         });
     }

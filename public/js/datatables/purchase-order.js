@@ -823,7 +823,7 @@
         */
         this.$body.on('click', '#preview-preparation-btn', function (e) {
             e.preventDefault();
-            var url = base_url + 'auth/purchase-order/preview?document=preparation&dr_no=' + $('#purchase_order_doc_no').val();
+            var url = base_url + 'auth/purchase-order/preview?document=preparation&po_no=' + $('#po_no').val()  + '&branch=' + $('#branch_id').val();
             window.open(url, "_blank");
         });
 
@@ -834,7 +834,7 @@
         */
         this.$body.on('click', '#preview-posting-btn', function (e) {
             e.preventDefault();
-            var url = base_url + 'auth/purchase-order/preview?document=posting&dr_no=' + $('#purchase_order_doc_no').val();
+            var url = base_url + 'auth/purchase-order/preview?document=posting&po_no=' + $('#po_no').val() + '&branch=' + $('#branch_id').val();
             window.open(url, "_blank");
         });
 

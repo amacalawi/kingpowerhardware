@@ -1277,6 +1277,8 @@ class TransferItemController extends Controller
             $transferItemLine->posted_quantity = $postedQuantity;
             if (floatval($postedQuantity) == floatval($transferItemLine->quantity)) {
                 $transferItemLine->status = 'posted';
+            } else {
+                $transferItemLine->status = 'partial';
             }
             $transferItemLine->updated_at = $timestamp;
             $transferItemLine->updated_by = Auth::user()->id;

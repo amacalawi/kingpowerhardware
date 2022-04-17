@@ -17,10 +17,12 @@ use App\Models\DeliveryLinePosting;
 use Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\File;
+use App\Exports\SalesItemReportExport;
+use Maatwebsite\Excel\Facades\Excel;
 // use App\Components\FlashMessages;
 // use App\Helper\Helper;
 
-class SalesItemsReportsController extends Controller
+class SalesItemReportsController extends Controller
 {   
     // use FlashMessages;
     private $models;
@@ -63,32 +65,33 @@ class SalesItemsReportsController extends Controller
         $pagess = 0;
         $last_btn = true;
 
+        $query = $this->get_line_items($per_page, $start_from, $dateFrom, $dateTo, $branch, $category, $item, $orderby, $keywords);
+        $count = $this->get_page_count($dateFrom, $dateTo, $branch, $category, $item, $orderby, $keywords);
+        $sumAmt = $this->get_page_amount($dateFrom, $dateTo, $branch, $category, $item, $orderby, $keywords);
+        $no_of_paginations = ceil($count / $per_page);
+        $assets = url('assets/media/illustrations/work.png');
+
         $msg = "";
         
         $msg .= '<div class="table-responsive">';
-        $msg .= '<table class="table align-middle table-row-dashed fs-6 gy-5" id="customerTable">';
+        $msg .= '<table data-row-count="'.$count.'" class="table align-middle table-row-dashed fs-6 gy-5" id="salesItemReportTable">';
         $msg .= '<thead>';
         $msg .= '<tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">';
         $msg .= '<th class="text-center">Transaction Date</th>';
-        $msg .= '<th class="">Branch</th>';
-        $msg .= '<th class="">Category</th>';
+        $msg .= '<th class="text-center">Branch</th>';
+        $msg .= '<th class="text-center">Category</th>';
         $msg .= '<th class="">Items</th>';
         $msg .= '<th class="text-center">Qty</th>';
         $msg .= '<th class="text-center">UOM</th>';
         $msg .= '<th class="text-center">SRP</th>';
+        $msg .= '<th class="text-center">PLUS</th>';
         $msg .= '<th class="text-center">DISC 1</th>';
         $msg .= '<th class="text-center">DISC 2</th>';
-        $msg .= '<th class="text-center">PLUS</th>';
-        $msg .= '<th class="text-right">Total Amount</th>';
         $msg .= '<th class="text-center">IS SPECIAL</th>';
+        $msg .= '<th class="text-center">Total</th>';
         $msg .= '</tr>';
         $msg .= '</thead>';
         $msg .= '<tbody class="fw-bold text-gray-600">';
-        
-        $query = $this->get_line_items($per_page, $start_from, $dateFrom, $dateTo, $branch, $category, $item, $orderby, $keywords);
-        $count = $this->get_page_count($dateFrom, $dateTo, $branch, $category, $item, $orderby, $keywords);
-        $no_of_paginations = ceil($count / $per_page);
-        $assets = url('assets/media/illustrations/work.png');
 
         if($count <= 0)
         {
@@ -105,21 +108,27 @@ class SalesItemsReportsController extends Controller
                 $totalAmt = number_format(floor(($row->totalAmt*100))/100,2);
                 $msg .= '<tr">';
                 $msg .= '<td class="text-center">'.$row->transDate.'</td>';
-                $msg .= '<td>'.$row->branch.'</td>';
-                $msg .= '<td>'.$row->category.'</td>';
+                $msg .= '<td class="text-center">'.$row->branch.'</td>';
+                $msg .= '<td class="text-center">'.$row->category.'</td>';
                 $msg .= '<td>'.$row->item.'</td>';
                 $msg .= '<td class="text-center">'.$row->quantity.'</td>';
                 $msg .= '<td class="text-center">'.$row->uom.'</td>';
                 $msg .= '<td class="text-center">'.$row->srp.'</td>';
+                $msg .= '<td class="text-center">'.$row->plus.'</td>';
                 $msg .= '<td class="text-center">'.$row->disc1.'</td>';
                 $msg .= '<td class="text-center">'.$row->disc2.'</td>';
-                $msg .= '<td class="text-center">'.$row->plus.'</td>';
-                $msg .= '<td class="text-right">'.$totalAmt.'</td>';
                 $msg .= '<td class="text-center">'.$row->is_special.'</td>';
+                $msg .= '<td class="text-right">'.$totalAmt.'</td>';
                 $msg .= '</tr>';
             }
         }
         $msg .= '</tbody>';
+        $msg .= '<tfoot>';
+        $msg .= '<tr class="fs-5">';
+        $msg .= '<td class="text-right" colspan="11"><strong>TOTAL AMOUNT:</strong></td>';
+        $msg .= '<td class="text-right text-danger"><strong>'.number_format(floor(($sumAmt*100))/100,2).'</strong></td>';
+        $msg .= '</tr>';
+        $msg .= '</tfoot>';
         $msg .= '</table>';
         $msg .= '</div>';
 
@@ -386,6 +395,98 @@ class SalesItemsReportsController extends Controller
         ->count();
 
         return $res;
+    }
+
+    public function get_page_amount($dateFrom = '', $dateTo = '', $branch = '', $category = '', $item = '', $orderby, $keywords = '')
+    {   
+        $dateFrom2 = date('Y-m-d', strtotime($dateFrom));
+        $dateTo2   = date('Y-m-d', strtotime($dateTo));
+        $res = DeliveryLinePosting::select([
+            'delivery_lines_posting.id as id',
+            'delivery_lines_posting.delivery_line_id as lineId',
+            'delivery_lines_posting.date_delivered as transDate',
+            'delivery_lines.uom as uom',
+            'items.code as itemCode',
+            'items.name as itemName',
+            'items_category.name as itemCategory',
+            'delivery_lines.is_special as is_special',
+            'delivery_lines.srp as srp',
+            'delivery_lines.quantity as prepQuantity',
+            'delivery_lines_posting.quantity as quantity',
+            'delivery_lines.total_amount as totalAmt',
+            'delivery_lines.discount1 as disc1',
+            'delivery_lines.discount2 as disc2',
+            'delivery_lines.plus as plus',
+            'branches.name as branch'
+        ])
+        ->leftJoin('delivery_lines', function($join)
+        {
+            $join->on('delivery_lines.id', '=', 'delivery_lines_posting.delivery_line_id');
+        })
+        ->leftJoin('items', function($join)
+        {
+            $join->on('items.id', '=', 'delivery_lines.item_id');
+        })
+        ->leftJoin('items_category', function($join)
+        {
+            $join->on('items_category.id', '=', 'items.item_category_id');
+        })
+        ->leftJoin('delivery', function($join)
+        {
+            $join->on('delivery.id', '=', 'delivery_lines.delivery_id');
+        })
+        ->leftJoin('branches', function($join)
+        {
+            $join->on('branches.id', '=', 'delivery.branch_id');
+        })
+        ->where(function($q) use ($keywords) {
+            if (!empty($keywords)) {
+                $q->where('delivery_lines.discount1', 'like', '%' . $keywords . '%')
+                ->orWhere('delivery_lines.discount2', 'like', '%' . $keywords . '%')
+                ->orWhere('delivery_lines.plus', 'like', '%' . $keywords . '%')
+                ->orWhere('delivery_lines.uom', 'like', '%' . $keywords . '%')
+                ->orWhere('delivery_lines.srp', 'like', '%' . $keywords . '%')
+                ->orWhere('items.name', 'like', '%' . $keywords . '%')
+                ->orWhere('items.code', 'like', '%' . $keywords . '%')
+                ->orWhere('branches.name', 'like', '%' . $keywords . '%')
+                ->orWhere('items_category.name', 'like', '%' . $keywords . '%');
+            }
+        })
+        ->where(function($q) use ($dateFrom, $dateTo, $dateFrom2, $dateTo2) {
+            if (!empty($dateFrom) && !empty($dateTo)) {
+                $q->where('delivery_lines_posting.date_delivered', '>=', $dateFrom2)
+                    ->where('delivery_lines_posting.date_delivered', '<=', $dateTo2);
+            } else if (!empty($dateFrom) && empty($dateTo)) {
+                $q->where('delivery_lines_posting.date_delivered', '=', $dateFrom);
+            } else if (empty($dateFrom) && !empty($dateTo)) {
+                $q->where('delivery_lines_posting.date_delivered', '=', $dateTo);
+            }
+        })
+        ->where(function($q) use ($item){
+            if ($item != '') {
+                $q->where('items.id', '=',  $item);
+            }
+        })
+        ->where(function($q) use ($category){
+            if ($category != '') {
+                $q->where('items_category.id', '=',  $category);
+            }
+        })
+        ->where(function($q) use ($branch){
+            if ($branch != '') {
+                $q->where('branches.id', '=',  $branch);
+            }
+        })
+        ->where('delivery_lines_posting.is_active', 1)
+        ->orderBy('delivery_lines_posting.id', $orderby)
+        ->sum('delivery_lines.total_amount');
+
+        return $res;
+    }
+
+    public function export(Request $request)
+    {
+        return Excel::download(new SalesItemReportExport($request), 'sales_item_report_'.time().'.xlsx');
     }
 
     public function audit_logs($entity, $entity_id, $description, $data, $timestamp, $user)

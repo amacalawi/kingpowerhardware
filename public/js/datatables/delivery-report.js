@@ -57,6 +57,11 @@
             dateFormat: "d-M-Y"
         });
         
+        /*
+        | ---------------------------------
+        | # when search button is clicked
+        | ---------------------------------
+        */
         this.$body.on('click', '.btn-search', function (e) {
             var t2 = document.querySelector('.btn-search');
             (t2.setAttribute("data-kt-indicator", "on"),
@@ -84,6 +89,27 @@
             var page  = $(this).attr('p');   
             if (page > 0) {
                 $.delivery_report.load_contents(page);
+            }
+        });
+
+        /*
+        | ---------------------------------
+        | # when export button is clicked
+        | ---------------------------------
+        */
+        this.$body.on('click', '.btn-export', function (e) {
+            e.preventDefault();
+            var count = $('body #deliveryReportTable').attr('data-row-count');
+            var form = $('#deliveryReportform');
+
+            if (count > 0) {
+                form.submit();
+            } else {
+                Swal.fire({
+                    icon: 'warning',
+                    html: "Oops!<br/>Theres no record can be export.",
+                    customClass: { confirmButton: "btn btn-warning", cancelButton: "btn btn-active-light" }
+                });
             }
         });
     }
