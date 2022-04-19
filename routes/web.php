@@ -20,6 +20,7 @@ use App\Http\Controllers\BillingController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\TransferItemReportsController;
 use App\Http\Controllers\CollectionReportsController;
+use App\Http\Controllers\BankController;
 
 /*
 |--------------------------------------------------------------------------
@@ -233,6 +234,19 @@ Route::prefix('auth')->group(function () {
             Route::put('restore/{id?}',[PurchaseOrderTypeController::class, 'restore']);
         });
 
+        Route::prefix('banks')->group(function () {
+            Route::get('',[BankController::class, 'index']);
+            Route::get('all-active',[BankController::class, 'all_active']);
+            Route::get('inactive',[BankController::class, 'inactive']);
+            Route::get('all-inactive',[BankController::class, 'all_inactive']);
+            Route::get('find/{id?}',[BankController::class, 'find']);
+            Route::post('store',[BankController::class, 'store']);
+            Route::put('update/{id?}',[BankController::class, 'update']);
+            Route::get('export',[BankController::class, 'export']);
+            Route::post('import',[BankController::class, 'import']);
+            Route::put('remove/{id?}',[BankController::class, 'remove']);
+            Route::put('restore/{id?}',[BankController::class, 'restore']);
+        });
         
         Route::prefix('roles')->group(function () {
             Route::get('',[RoleController::class, 'index']);

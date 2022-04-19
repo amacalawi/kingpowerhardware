@@ -31,9 +31,9 @@ class DeliveryReportExport implements WithEvents, WithStyles, WithColumnWidths, 
         $this->dateFrom     = $request->get('dateFrom');  
         $this->dateTo       = $request->get('dateTo');  
         $this->type         = $request->get('type');  
-        $this->branch       = $request->get('branch');
-        $this->customer     = $request->get('customer');  
-        $this->agent        = $request->get('agent');  
+        $this->branch       = $request->get('branch_id');
+        $this->customer     = $request->get('customer_id');  
+        $this->agent        = $request->get('agent_id');  
         $this->status       = $request->get('status');  
     }
 
@@ -227,14 +227,84 @@ class DeliveryReportExport implements WithEvents, WithStyles, WithColumnWidths, 
                     'font' => [
                         // 'name'      =>  'Calibri',
                         'size'      =>  14,
-                        'bold'      =>  true
+                        'bold'      =>  true,
+                        'color' => ['rgb' => 'FFFFFF']
+                    ],
+                    'borders' => [
+                        'outline' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['rgb' => '3c3939'],
+                        ],
+                    ],
+                    'fill' => [
+                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                        'color' => ['rgb' => '3c3939']
                     ]
                 ];
                 $styleArray2 = [
                     'font' => [
                         // 'name'      =>  'Calibri',
                         'size'      =>  12,
-                        'bold'      =>  true
+                        'bold'      =>  true,
+                        'color' => ['rgb' => '000000']
+                    ],
+                ];
+                $styleArray3 = [
+                    'font' => [
+                        // 'name'      =>  'Calibri',
+                        'size'      =>  12,
+                        'bold'      =>  true,
+                        'color' => ['rgb' => 'f1416c']
+                    ],
+                    'borders' => [
+                        'outline' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['rgb' => '000000'],
+                        ],
+                    ]
+                ];
+                $styleArray4 = [
+                    'font' => [
+                        // 'name'      =>  'Calibri',
+                        'size'      =>  12,
+                        'bold'      =>  true,
+                        'color' => ['rgb' => 'FFFFFF']
+                    ],
+                    'borders' => [
+                        'outline' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['rgb' => '3c3939'],
+                        ],
+                    ],
+                    'fill' => [
+                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                        'color' => ['rgb' => '3c3939']
+                    ]
+                ];
+                $styleArray5 = [
+                    'font' => [
+                        // 'name'      =>  'Calibri',
+                        'size'      =>  11,
+                    ],
+                    'borders' => [
+                        'outline' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['rgb' => '000000'],
+                        ],
+                    ]
+                ];
+                $styleArray6 = [
+                    'font' => [
+                        // 'name'      =>  'Calibri',
+                        'size'      =>  12,
+                        'bold'      =>  true,
+                        'color' => ['rgb' => '000000']
+                    ],
+                    'borders' => [
+                        'outline' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['rgb' => '000000'],
+                        ],
                     ]
                 ];
 
@@ -257,7 +327,7 @@ class DeliveryReportExport implements WithEvents, WithStyles, WithColumnWidths, 
 
                 $event->sheet->getDelegate()->mergeCells('A1:'.$maxColumn.'1');
                 $event->sheet->getDelegate()->mergeCells('A2:'.$maxColumn.'2');
-                $event->sheet->getStyle('A1:'.$maxColumn.'2')->applyFromArray($styleArray1)->getAlignment()->setHorizontal('center');
+                $event->sheet->getStyle('A1:'.$maxColumn.'1')->applyFromArray($styleArray1)->getAlignment()->setHorizontal('center');
                 $event->sheet->setCellValue('A1', 'DELIVERY REPORTS');
 
                 $event->sheet->getDelegate()->mergeCells($firstStartColumn.'3:'.$firstEndColumn.'3');
@@ -282,12 +352,12 @@ class DeliveryReportExport implements WithEvents, WithStyles, WithColumnWidths, 
                             $column = $this->getColumns($count);
                             $column2 = $this->getColumns(($count + 1));
                             $event->sheet->getDelegate()->mergeCells($column.''.$rows.':'.$column2.''.$rows);
-                            $event->sheet->getStyle($column.''.$rows.':'.$column2.''.$rows)->applyFromArray($styleArray2)->getAlignment()->setHorizontal('center');
+                            $event->sheet->getStyle($column.''.$rows.':'.$column2.''.$rows)->applyFromArray($styleArray4)->getAlignment()->setHorizontal('center');
                             $event->sheet->setCellValue($column.''.$rows, $header);
                             $count++;
                         } else {
                             $column = $this->getColumns($count);
-                            $event->sheet->getStyle($column.''.$rows)->applyFromArray($styleArray2)->getAlignment()->setHorizontal('center');
+                            $event->sheet->getStyle($column.''.$rows)->applyFromArray($styleArray4)->getAlignment()->setHorizontal('center');
                             $event->sheet->setCellValue($column.''.$rows, $header);
                         }
                         $count++;
@@ -296,98 +366,110 @@ class DeliveryReportExport implements WithEvents, WithStyles, WithColumnWidths, 
                     foreach ($headers as $header)
                     {   
                         $column = $this->getColumns($count);
-                        $event->sheet->getStyle($column.''.$rows)->applyFromArray($styleArray2)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle($column.''.$rows)->applyFromArray($styleArray4)->getAlignment()->setHorizontal('center');
                         $event->sheet->setCellValue($column.''.$rows, $header);
                         $count++;
                     }
                 }
 
-                $rows = 7;
+                $rows = 7; $totalAmt = 0;
                 if ($this->type == 'summary') {
                     foreach ($lines as $line)
                     {   
                         $event->sheet->setCellValue('A'.$rows, date('d-M-Y', strtotime($line->transDate)));
-                        $event->sheet->getStyle('A'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('A'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('B'.$rows, $line->docNo);
-                        $event->sheet->getStyle('B'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('B'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('C'.$rows, $line->branch);
-                        $event->sheet->getStyle('C'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('C'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->getDelegate()->mergeCells('D'.$rows.':E'.$rows);
                         $event->sheet->setCellValue('D'.$rows, $line->customer);
-                        $event->sheet->getStyle('D'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('D'.$rows.':E'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('F'.$rows, $line->agent);
-                        $event->sheet->getStyle('F'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('F'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('G'.$rows, $line->status);
-                        $event->sheet->getStyle('G'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('G'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('H'.$rows, number_format(floor(($line->totalAmt*100))/100,2));
-                        $event->sheet->getStyle('H'.$rows)->getAlignment()->setHorizontal('right');
-                        
+                        $event->sheet->getStyle('H'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('right');
+                        $totalAmt += floatval($line->totalAmt);
                         $rows++;
                     }
+                    $event->sheet->getDelegate()->mergeCells('A'.$rows.':G'.$rows);
+                    $event->sheet->setCellValue('A'.$rows, 'TOTAL AMOUNT:');
+                    $event->sheet->getStyle('A'.$rows.':G'.$rows)->applyFromArray($styleArray6)->getAlignment()->setHorizontal('right');
+
+                    $event->sheet->setCellValue('H'.$rows, number_format(floor(($totalAmt*100))/100,2));
+                    $event->sheet->getStyle('H'.$rows)->applyFromArray($styleArray3)->getAlignment()->setHorizontal('right');
                 } else {
                     foreach ($lines as $line)
                     {  
                         $event->sheet->setCellValue('A'.$rows, date('d-M-Y', strtotime($line->transDate)));
-                        $event->sheet->getStyle('A'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('A'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('B'.$rows, $line->docNo);
-                        $event->sheet->getStyle('B'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('B'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('C'.$rows, $line->branch);
-                        $event->sheet->getStyle('C'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('C'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('D'.$rows, $line->customer);
-                        $event->sheet->getStyle('D'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('D'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('E'.$rows, $line->agent);
-                        $event->sheet->getStyle('E'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('E'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('F'.$rows, $line->itemCode.' - '.$line->itemName);
-                        $event->sheet->getStyle('F'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('F'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $quantity = ($this->status == 'posted' || $this->status == 'partial') ? $line->posted_quantity : $line->quantity;
                         $event->sheet->setCellValue('G'.$rows, $quantity);
-                        $event->sheet->getStyle('G'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('G'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('H'.$rows, $line->uom);
-                        $event->sheet->getStyle('H'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('H'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('I'.$rows, number_format(floor(($line->srp*100))/100,2));
-                        $event->sheet->getStyle('I'.$rows)->getAlignment()->setHorizontal('right');
+                        $event->sheet->getStyle('I'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('right');
 
                         $plus = $line->plus ? $line->plus.'%' : '';
                         $event->sheet->setCellValue('J'.$rows, $plus);
-                        $event->sheet->getStyle('J'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('J'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $disc1 = $line->disc1 ? $line->disc1.'%' : '';
                         $event->sheet->setCellValue('K'.$rows, $disc1);
-                        $event->sheet->getStyle('K'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('K'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $disc2 = $line->disc2 ? $line->disc2.'%' : '';
                         $event->sheet->setCellValue('L'.$rows, $disc2);
-                        $event->sheet->getStyle('L'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('L'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
                         $event->sheet->setCellValue('M'.$rows, $line->status);
-                        $event->sheet->getStyle('M'.$rows)->getAlignment()->setHorizontal('center');
+                        $event->sheet->getStyle('M'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
-                        $totalAmt = 0;
+                        $totalAmts = 0;
                         if ($line->status == 'partial') {
                             $srpVal = floatval($line->total_amount) / floatval($line->quantity);
-                            $totalAmt = floatval($line->posted_quantity) * floatval($srpVal);
+                            $totalAmts = floatval($line->posted_quantity) * floatval($srpVal);
                         } else {
-                            $totalAmt = $line->total_amount;
+                            $totalAmts = $line->total_amount;
                         }
-                        $event->sheet->setCellValue('N'.$rows, number_format(floor(($totalAmt*100))/100,2));
-                        $event->sheet->getStyle('N'.$rows)->getAlignment()->setHorizontal('right');
-
+                        $event->sheet->setCellValue('N'.$rows, number_format(floor(($totalAmts*100))/100,2));
+                        $event->sheet->getStyle('N'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('right');
+                        $totalAmt += floatval($totalAmts);
                         $rows++;
                     }
+                    $event->sheet->getDelegate()->mergeCells('A'.$rows.':M'.$rows);
+                    $event->sheet->setCellValue('A'.$rows, 'TOTAL AMOUNT:');
+                    $event->sheet->getStyle('A'.$rows.':M'.$rows)->applyFromArray($styleArray6)->getAlignment()->setHorizontal('right');
+
+                    $event->sheet->setCellValue('N'.$rows, number_format(floor(($totalAmt*100))/100,2));
+                    $event->sheet->getStyle('N'.$rows)->applyFromArray($styleArray3)->getAlignment()->setHorizontal('right');
                 }
             },
         ];
@@ -433,6 +515,6 @@ class DeliveryReportExport implements WithEvents, WithStyles, WithColumnWidths, 
 
     public function title(): string
     {
-        return 'DELIVERY REPORT';
+        return strtoupper($this->type).' DELIVERY REPORT';
     }
 }
