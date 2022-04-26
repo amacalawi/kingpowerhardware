@@ -233,6 +233,7 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
         // 'PDF' => Elibyy\TCPDF\Facades\TCPDF::class
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+        'Helper' => App\Helper\Helper::class,
     ],
 
 ];

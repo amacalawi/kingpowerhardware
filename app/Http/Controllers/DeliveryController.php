@@ -23,7 +23,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\File;
 use PDF;
 // use App\Components\FlashMessages;
-// use App\Helper\Helper;
+use App\Helper\Helper;
 
 class DeliveryController extends Controller
 {   
@@ -36,9 +36,18 @@ class DeliveryController extends Controller
         $this->middleware('auth');
     }
 
+    public function is_permitted($permission)
+    {   
+        // dd(Helper::get_privileges());
+        $privileges = explode(',', strtolower(Helper::get_privileges()));
+        if (!$privileges[$permission] == 1) {
+            return abort(404);
+        }
+    }
+    
     public function index(Request $request)
     {   
-        // $this->is_permitted(1);    
+        $this->is_permitted(1);    
         $menus = $this->load_menus();
         $branches = (new Branch)->all_branches_selectpicker(Auth::user()->id);
         $customers = (new Customer)->all_customer_selectpicker();
@@ -50,7 +59,7 @@ class DeliveryController extends Controller
 
     public function get_delivery_doc_no(Request $request, $branch)
     {
-        $drNo = (new DeliveryDocPrintStart)->get_delivery_doc_no($branch);
+        $drNo = (new Delivery)->get_delivery_doc_no($branch);
         return $drNo;
     }
 
@@ -88,7 +97,7 @@ class DeliveryController extends Controller
     {   
         // $this->is_permitted(0);
         $timestamp = date('Y-m-d H:i:s');
-        $drNo = (new DeliveryDocPrintStart)->get_delivery_doc_no($request->branch_id);
+        $drNo = (new Delivery)->get_delivery_doc_no($request->branch_id);
 
         $delivery = Delivery::create([
             'branch_id' => $request->branch_id,

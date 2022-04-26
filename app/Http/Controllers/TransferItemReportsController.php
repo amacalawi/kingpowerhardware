@@ -88,6 +88,9 @@ class TransferItemReportsController extends Controller
         $msg .= '<th class="text-center">UOM</th>';
         $msg .= '<th class="text-center">Qty</th>';
         $msg .= '<th class="text-center">SRP</th>';
+        $msg .= '<th class="text-center">PLUS</th>';
+        $msg .= '<th class="text-center">DISC1</th>';
+        $msg .= '<th class="text-center">DISC2</th>';
         $msg .= '<th class="text-center">STATUS</th>';
         $msg .= '<th class="text-center">Total</th>';
         $msg .= '</tr>';
@@ -107,6 +110,9 @@ class TransferItemReportsController extends Controller
             foreach ($query as $row)
             {   
                 $totalAmt = number_format(floor(($row->totalAmt*100))/100,2);
+                $plus = ($row->plus > 0) ? $row->plus.'%' : '';
+                $disc1 = ($row->disc1 > 0) ? $row->disc1.'%' : '';
+                $disc2 = ($row->disc2 > 0) ? $row->disc2.'%' : '';
                 $msg .= '<tr">';
                 $msg .= '<td class="text-center">'.$row->transDate.'</td>';
                 $msg .= '<td class="text-center">'.$row->transNo.'</td>';
@@ -117,6 +123,9 @@ class TransferItemReportsController extends Controller
                 $msg .= '<td class="text-center">'.$row->uom.'</td>';
                 $msg .= '<td class="text-center">'.$row->quantity.'</td>';
                 $msg .= '<td class="text-center">'.$row->srp.'</td>';
+                $msg .= '<td class="text-center">'.$plus.'</td>';
+                $msg .= '<td class="text-center">'.$disc1.'</td>';
+                $msg .= '<td class="text-center">'.$disc2.'</td>';
                 $msg .= '<td class="text-center">'.$row->status.'</td>';
                 $msg .= '<td class="text-right">'.$totalAmt.'</td>';
                 $msg .= '</tr>';
@@ -125,7 +134,7 @@ class TransferItemReportsController extends Controller
         $msg .= '</tbody>';
         $msg .= '<tfoot>';
         $msg .= '<tr class="fs-5">';
-        $msg .= '<td class="text-right" colspan="10"><strong>TOTAL AMOUNT:</strong></td>';
+        $msg .= '<td class="text-right" colspan="13"><strong>TOTAL AMOUNT:</strong></td>';
         $msg .= '<td class="text-right text-danger"><strong>'.number_format(floor(($sumAmt*100))/100,2).'</strong></td>';
         $msg .= '</tr>';
         $msg .= '</tfoot>';
@@ -217,6 +226,9 @@ class TransferItemReportsController extends Controller
             'transfer_items_lines.srp as srp',
             'transfer_items_lines.total_amount as total_amount',
             'transfer_items_lines.posted_quantity as posted_quantity',
+            'transfer_items_lines.discount1 as disc1',
+            'transfer_items_lines.discount2 as disc2',
+            'transfer_items_lines.plus as plus',
             'bra1.name as branchFrom',
             'bra2.name as branchTo',
             'transfer_items.transfer_no as transNo',
@@ -252,6 +264,9 @@ class TransferItemReportsController extends Controller
                   ->orWhere('transfer_items_lines.quantity', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.total_amount', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.posted_quantity', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount1', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount2', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.plus', 'like', '%' . $keywords . '%')
                   ->orWhere('unit_of_measurements.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.name', 'like', '%' . $keywords . '%')
@@ -319,6 +334,9 @@ class TransferItemReportsController extends Controller
                 'uom' => $trans->uom,
                 'quantity' => ($status == 'partial') ? $trans->posted_quantity : $trans->quantity,
                 'srp' => $trans->srp,
+                'disc1' => $trans->disc1,
+                'disc2' => $trans->disc2,
+                'plus' => $trans->plus,
                 'status' => ($status == 'partial' || $status == 'posted') ? $trans->status : 'prepared',
                 'totalAmt' => floatval($totalAmt)
             ];
@@ -340,6 +358,9 @@ class TransferItemReportsController extends Controller
             'transfer_items_lines.srp as srp',
             'transfer_items_lines.total_amount as total_amount',
             'transfer_items_lines.posted_quantity as posted_quantity',
+            'transfer_items_lines.discount1 as disc1',
+            'transfer_items_lines.discount2 as disc2',
+            'transfer_items_lines.plus as plus',
             'bra1.name as branchFrom',
             'bra2.name as branchTo',
             'transfer_items.transfer_no as transNo',
@@ -375,6 +396,9 @@ class TransferItemReportsController extends Controller
                   ->orWhere('transfer_items_lines.quantity', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.total_amount', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.posted_quantity', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount1', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount2', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.plus', 'like', '%' . $keywords . '%')
                   ->orWhere('unit_of_measurements.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.name', 'like', '%' . $keywords . '%')
@@ -441,6 +465,9 @@ class TransferItemReportsController extends Controller
             'transfer_items_lines.srp as srp',
             'transfer_items_lines.total_amount as total_amount',
             'transfer_items_lines.posted_quantity as posted_quantity',
+            'transfer_items_lines.discount1 as disc1',
+            'transfer_items_lines.discount2 as disc2',
+            'transfer_items_lines.plus as plus',
             'bra1.name as branchFrom',
             'bra2.name as branchTo',
             'transfer_items.transfer_no as transNo',
@@ -476,6 +503,9 @@ class TransferItemReportsController extends Controller
                   ->orWhere('transfer_items_lines.quantity', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.total_amount', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.posted_quantity', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount1', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount2', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.plus', 'like', '%' . $keywords . '%')
                   ->orWhere('unit_of_measurements.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.name', 'like', '%' . $keywords . '%')
@@ -541,7 +571,7 @@ class TransferItemReportsController extends Controller
 
     public function export(Request $request)
     {
-        return Excel::download(new TransferItemReportExport($request), 'sales_item_report_'.time().'.xlsx');
+        return Excel::download(new TransferItemReportExport($request), 'transfer_item_report_'.time().'.xlsx');
     }
 
     public function audit_logs($entity, $entity_id, $description, $data, $timestamp, $user)

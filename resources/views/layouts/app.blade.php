@@ -21,6 +21,7 @@
         <script>
             var base_url = "{{ url('/') }}/";
             var _token = "{{ csrf_token() }}";
+            var _privileges = "{{  \Helper::get_privileges() }}";
             var segment = "{{ request()->segment(count(request()->segments())) }}";
         </script>
     </head>
