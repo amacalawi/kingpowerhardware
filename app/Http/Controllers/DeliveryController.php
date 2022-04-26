@@ -38,13 +38,18 @@ class DeliveryController extends Controller
 
     public function is_permitted($permission)
     {   
-        // dd(Helper::get_privileges());
         $privileges = explode(',', strtolower(Helper::get_privileges()));
         if (!$privileges[$permission] == 1) {
             return abort(404);
         }
     }
     
+    public function permission()
+    {   
+        $privileges = explode(',', strtolower(Helper::get_privileges()));
+        return $privileges;
+    }
+
     public function index(Request $request)
     {   
         $this->is_permitted(1);    
