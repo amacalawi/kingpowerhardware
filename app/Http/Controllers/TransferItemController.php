@@ -162,6 +162,8 @@ class TransferItemController extends Controller
             $msg .= '<th class="min-w-125px">From</th>';
             $msg .= '<th class="min-w-125px">To</th>';
             $msg .= '<th class="min-w-125px">Remarks</th>';
+            $msg .= '<th class="text-right">TOTAL AMOUNT</th>';
+            $msg .= '<th class="text-center">STATUS</th>';
             $msg .= '<th class="text-center">Last Modified</th>';
             $msg .= '<th class="text-center min-w-70px">Actions</th>';
             $msg .= '</tr>';
@@ -601,6 +603,9 @@ class TransferItemController extends Controller
             $msg .= '<th class="min-w-50px text-center">Qty</th>';
             $msg .= '<th class="min-w-50px text-center">UOM</th>';
             $msg .= '<th class="min-w-50px text-center">SRP</th>';
+            $msg .= '<th class="min-w-50px text-center">Plus</th>';
+            $msg .= '<th class="min-w-50px text-center">Disc1</th>';
+            $msg .= '<th class="min-w-50px text-center">Disc2</th>';
             $msg .= '<th class="min-w-50px text-center">Total</th>';
             $msg .= '<th class="min-w-50px text-center">Posted</th>';
             $msg .= '<th class="text-center min-w-70px">Actions</th>';
@@ -638,6 +643,9 @@ class TransferItemController extends Controller
                 $msg .= '<td class="min-w-50px text-center">'.$row->quantity.'</td>';
                 $msg .= '<td class="min-w-50px text-center">'.$row->uom.'</td>';
                 $msg .= '<td class="min-w-50px text-center">'.$row->srp.'</td>';
+                $msg .= '<td class="min-w-50px text-center">'.(($row->plus > 0) ? $row->plus.'%' : '' ).'</td>';
+                $msg .= '<td class="min-w-50px text-center">'.(($row->disc1 > 0) ? $row->disc1.'%' : '' ).'</td>';
+                $msg .= '<td class="min-w-50px text-center">'.(($row->disc2 > 0) ? $row->disc2.'%' : '' ).'</td>';
                 $msg .= '<td class="min-w-50px text-center">'.$row->total_amount.'</td>';
                 $msg .= '<td class="min-w-50px text-center">'.(($row->posted_quantity > 0) ? $row->posted_quantity : '' ).'</td>';
                 $msg .= '<td class="text-center">';
@@ -745,6 +753,9 @@ class TransferItemController extends Controller
                 'unit_of_measurements.code as uom',
                 'transfer_items_lines.srp as srp',
                 'transfer_items_lines.total_amount as total_amount',
+                'transfer_items_lines.discount1 as disc1',
+                'transfer_items_lines.discount2 as disc2',
+                'transfer_items_lines.plus as plus',
                 'transfer_items_lines.posted_quantity as posted_quantity',
             ])
             ->leftJoin('items', function($join)
@@ -765,6 +776,9 @@ class TransferItemController extends Controller
                   ->orWhere('transfer_items_lines.quantity', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.total_amount', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.posted_quantity', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount1', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount2', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.plus', 'like', '%' . $keywords . '%')
                   ->orWhere('unit_of_measurements.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.name', 'like', '%' . $keywords . '%')
@@ -782,6 +796,9 @@ class TransferItemController extends Controller
                 'unit_of_measurements.code as uom',
                 'transfer_items_lines.srp as srp',
                 'transfer_items_lines.total_amount as total_amount',
+                'transfer_items_lines.discount1 as disc1',
+                'transfer_items_lines.discount2 as disc2',
+                'transfer_items_lines.plus as plus',
                 'transfer_items_lines.posted_quantity as posted_quantity',
             ])
             ->leftJoin('items', function($join)
@@ -810,6 +827,9 @@ class TransferItemController extends Controller
                 'srp' => $trans->srp,
                 'uom' => $trans->uom,
                 'total_amount' => $trans->total_amount,
+                'disc1' => $trans->disc1,
+                'disc2' => $trans->disc2,
+                'plus' => $trans->plus,
                 'posted_quantity' => $trans->posted_quantity,
                 'modified_at' => ($trans->updated_at !== NULL) ? date('d-M-Y', strtotime($trans->updated_at)).'<br/>'. date('h:i A', strtotime($trans->updated_at)) : date('d-M-Y', strtotime($trans->created_at)).'<br/>'. date('h:i A', strtotime($trans->created_at))
             ];
@@ -827,6 +847,9 @@ class TransferItemController extends Controller
                 'unit_of_measurements.code as uom',
                 'transfer_items_lines.srp as srp',
                 'transfer_items_lines.total_amount as total_amount',
+                'transfer_items_lines.discount1 as disc1',
+                'transfer_items_lines.discount2 as disc2',
+                'transfer_items_lines.plus as plus',
                 'transfer_items_lines.posted_quantity as posted_quantity',
             ])
             ->leftJoin('items', function($join)
@@ -847,6 +870,9 @@ class TransferItemController extends Controller
                   ->orWhere('transfer_items_lines.quantity', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.total_amount', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.posted_quantity', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount1', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount2', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.plus', 'like', '%' . $keywords . '%')
                   ->orWhere('unit_of_measurements.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.name', 'like', '%' . $keywords . '%')
                   ->orWhere('items.code', 'like', '%' . $keywords . '%')
@@ -863,6 +889,9 @@ class TransferItemController extends Controller
                 'unit_of_measurements.code as uom',
                 'transfer_items_lines.srp as srp',
                 'transfer_items_lines.total_amount as total_amount',
+                'transfer_items_lines.discount1 as disc1',
+                'transfer_items_lines.discount2 as disc2',
+                'transfer_items_lines.plus as plus',
                 'transfer_items_lines.posted_quantity as posted_quantity',
             ])
             ->leftJoin('items', function($join)
@@ -934,18 +963,21 @@ class TransferItemController extends Controller
     }
 
     public function generate_trans_no()
-    {
-        $count = TransferItem::count();
+    {   
+        $year = date('Y');
+        $yearPrefix = substr($year, -2);
+        $count = TransferItem::where('created_at', 'like', '%' . $year . '%')->count();
+        $tr = 'TR-'.$yearPrefix;
         if ($count < 9) {
-            return 'TR-0000'.($count + 1);
+            return $tr .= '0000'.($count + 1);
         } else if ($count < 99) {
-            return 'TR-000'.($count + 1);
+            return $tr .= '000'.($count + 1);
         } else if ($count < 999) {
-            return 'TR-00'.($count + 1);
+            return $tr .= '00'.($count + 1);
         } else if ($count < 9999) {
-            return 'TR-0'.($count + 1);
+            return $tr .= '0'.($count + 1);
         } else if ($count < 99999) {
-            return 'TR-'.($count + 1);
+            return $tr .= ''.($count + 1);
         }
     }
 
@@ -1079,9 +1111,13 @@ class TransferItemController extends Controller
         $transferItemLine = TransferItemLine::create([
             'transfer_item_id' => $transferItemID,
             'item_id' => $request->item_id,
-            'uom_id' => $request->uom_id,
+            'uom_id' => $request->get('uom_id'),
+            'is_special' => ($request->srp_special !== NULL) ? 1 : 0,
+            'srp' => ($request->srp_special !== NULL) ? $request->srp_special : $request->get('srp'),
             'quantity' => $request->qty,
-            'srp' => $request->get('srp'),
+            'discount1' => $request->disc1,
+            'discount2' => $request->disc2,
+            'plus' => $request->plus,
             'total_amount' => $request->get('total_amount'),
             'created_at' => $timestamp,
             'created_by' => Auth::user()->id
@@ -1259,7 +1295,7 @@ class TransferItemController extends Controller
                 'issued_quantity' => $quantity,
                 'left_quantity' => $qtyLeft,
                 'srp' => $transferItemLine->srp,
-                'total_amount' => $transferItemLine->total_amount,
+                'total_amount' => floatval(floatval($transferItemLine->srp) * floatval($quantity)),
                 'issued_by' => Auth::user()->id,
                 'received_by' => Auth::user()->id,
                 'remarks' => 'Item receiving from Transfer Item ('.$transferItem->transfer_no.')',

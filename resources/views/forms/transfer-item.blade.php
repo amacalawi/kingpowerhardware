@@ -103,32 +103,9 @@
                     }}
                 </div>
                 <div class="col-sm-6">
-                    {{ Form::label('uom_id', 'Unit Of Measurement', ['class' => 'required fs-6 fw-bold mb-2']) }}
+                    {{ Form::label('uom_id', 'Unit Of Measurement', ['class' => 'fs-6 fw-bold mb-2']) }}
                     {{
-                        Form::select('uom_id', $uoms, '', ['data-control' => 'select2', 'data-placeholder' => 'select a uom', 'data-dropdown-parent' => '#transferItemModal', 'id' => 'uom_id', 'class' => 'form-select form-select-solid fw-bolder'])
-                    }}
-                </div>
-            </div>
-            <div class="fv-row row mb-4">
-                <div class="col-sm-6">
-                    {{ Form::label('qty', 'Quantity', ['class' => 'required fs-6 fw-bold mb-2']) }}
-                    {{ 
-                        Form::text($name = 'qty', $value = '', 
-                        $attributes = array(
-                            'id' => 'qty',
-                            'class' => 'numeric form-control form-control-solid',
-                        )) 
-                    }}
-                </div>
-                <div class="col-sm-6">
-                    {{ Form::label('based_quantity', 'Quantity On-Hand', ['class' => 'fs-6 fw-bold mb-2']) }}
-                    {{ 
-                        Form::text($name = 'based_quantity', $value = '', 
-                        $attributes = array(
-                            'id' => 'based_quantity',
-                            'class' => 'numeric form-control form-control-solid',
-                            'disabled' => 'disabled'
-                        )) 
+                        Form::select('uom_id', $uoms, '', ['data-control' => 'select2', 'data-placeholder' => 'select a uom', 'data-dropdown-parent' => '#transferItemModal', 'id' => 'uom_id', 'class' => 'form-select form-select-solid fw-bolder', 'disabled' => 'disabled'])
                     }}
                 </div>
             </div>
@@ -145,6 +122,71 @@
                     }}
                 </div>
                 <div class="col-sm-6">
+                    {{ Form::label('srp_special', 'Special SRP', ['class' => 'fs-6 fw-bold mb-2']) }}
+                    {{ 
+                        Form::text($name = 'srp_special', $value = '', 
+                        $attributes = array(
+                            'id' => 'srp_special',
+                            'class' => 'numeric form-control form-control-solid',
+                        )) 
+                    }}
+                </div>
+            </div>
+            <div class="fv-row row mb-4">
+                <div class="col-sm-4">
+                    {{ Form::label('based_quantity', 'Quantity On-Hand', ['class' => 'fs-6 fw-bold mb-2']) }}
+                    {{ 
+                        Form::text($name = 'based_quantity', $value = '', 
+                        $attributes = array(
+                            'id' => 'based_quantity',
+                            'class' => 'numeric form-control form-control-solid',
+                            'disabled' => 'disabled'
+                        )) 
+                    }}
+                </div>
+                <div class="col-sm-4">
+                    {{ Form::label('qty', 'Quantity', ['class' => 'required fs-6 fw-bold mb-2']) }}
+                    {{ 
+                        Form::text($name = 'qty', $value = '', 
+                        $attributes = array(
+                            'id' => 'qty',
+                            'class' => 'numeric form-control form-control-solid',
+                        )) 
+                    }}
+                </div>
+                <div class="col-sm-4">
+                    {{ Form::label('plus', 'Plus', ['class' => 'fs-6 fw-bold mb-2']) }}
+                    {{ 
+                        Form::text($name = 'plus', $value = '', 
+                        $attributes = array(
+                            'id' => 'plus',
+                            'class' => 'numeric-only form-control form-control-solid',
+                        )) 
+                    }}
+                </div>
+            </div>
+            <div class="fv-row row mb-4">
+                <div class="col-sm-4">
+                    {{ Form::label('disc1', 'Discount 1', ['class' => 'fs-6 fw-bold mb-2']) }}
+                    {{ 
+                        Form::text($name = 'disc1', $value = '', 
+                        $attributes = array(
+                            'id' => 'disc1',
+                            'class' => 'numeric-only form-control form-control-solid',
+                        )) 
+                    }}
+                </div>
+                <div class="col-sm-4">
+                    {{ Form::label('disc2', 'Discount 2', ['class' => 'fs-6 fw-bold mb-2']) }}
+                    {{ 
+                        Form::text($name = 'disc2', $value = '', 
+                        $attributes = array(
+                            'id' => 'disc2',
+                            'class' => 'numeric-only form-control form-control-solid',
+                        )) 
+                    }}
+                </div>
+                <div class="col-sm-4">
                     {{ Form::label('total_amount', 'Total Amount', ['class' => 'fs-6 fw-bold mb-2']) }}
                     {{ 
                         Form::text($name = 'total_amount', $value = '', 
@@ -156,6 +198,7 @@
                     }}
                 </div>
             </div>
+
             <div class="fv-row row">
                 <div class="col-sm-12 text-center mt-4">
                 <button type="button" class="add-item-btn btn btn-lg btn-primary">

@@ -2,7 +2,7 @@
 
 @section('content')
 <!--begin::Main-->
-<div class="d-flex flex-column flex-root">
+<div class="d-flex flex-column flex-root" style="min-height: 100vh">
     <!--begin::Authentication - Sign-in -->
     <div class="d-flex flex-column flex-column-fluid bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed" style="background-image: url(assets/media/illustrations/progress-hd.png)">
         <!--begin::Content-->

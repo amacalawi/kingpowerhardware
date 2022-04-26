@@ -312,7 +312,7 @@
         */
         this.$body.on('hidden.bs.modal', '#deliveryModal', function (e) {
             var modal = $(this);
-            modal.find('.modal-header h5').html('New delivery');
+            modal.find('.modal-header h5').html('New Delivery');
             modal.find('input, textarea').val('');
             modal.find('#branch_id').prop('disabled', false);
             modal.find('select').select2().val('').trigger('change');
@@ -346,7 +346,7 @@
             var modal  = $('#deliveryModal');
             var urlz   = base_url + 'auth/delivery/find/' + id;
             console.log(urlz);
-            modal.find('.modal-header h5').html('Edit delivery ('+dr+')');
+            modal.find('.modal-header h5').html('Edit Delivery ('+dr+')');
             $.ajax({
                 type: 'GET',
                 url: urlz,

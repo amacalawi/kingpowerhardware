@@ -13,7 +13,7 @@ use Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Http\File;
 // use App\Components\FlashMessages;
-// use App\Helper\Helper;
+use App\Helper\Helper;
 
 class CustomerController extends Controller
 {   
@@ -26,17 +26,32 @@ class CustomerController extends Controller
         $this->middleware('auth');
     }
 
+    public function is_permitted($permission)
+    {   
+        $privileges = explode(',', strtolower(Helper::get_privileges()));
+        if (!$privileges[$permission] == 1) {
+            return abort(404);
+        }
+    }
+    
+    public function permission()
+    {   
+        $privileges = explode(',', strtolower(Helper::get_privileges()));
+        return $privileges;
+    }
+
     public function index(Request $request)
     {   
-        // $this->is_permitted(1);    
+        $this->is_permitted(1);    
         $menus = $this->load_menus();
         $agents = (new User)->all_agents_selectpicker();
-        return view('modules/components/customers/manage')->with(compact('menus', 'agents'));
+        $permission = $this->permission();
+        return view('modules/components/customers/manage')->with(compact('menus', 'agents', 'permission'));
     }
 
     public function store(Request $request)
     {   
-        // $this->is_permitted(0);
+        $this->is_permitted(0);
         $timestamp = date('Y-m-d H:i:s');
 
         $rows = Customer::where([
@@ -84,6 +99,7 @@ class CustomerController extends Controller
 
     public function find(Request $request, $id)
     {    
+        $this->is_permitted(1);
         $customer = Customer::find($id);
 
         if(!$customer) {
@@ -99,7 +115,7 @@ class CustomerController extends Controller
 
     public function update(Request $request, $id)
     {    
-        // $this->is_permitted(2);
+        $this->is_permitted(2);
         $timestamp = date('Y-m-d H:i:s');
         $customer = Customer::find($id);
 
@@ -203,19 +219,23 @@ class CustomerController extends Controller
                 $msg .= '<td data-filter="visa">'.$row->agent.'</td>';
                 $msg .= '<td class="text-center">'.$row->modified_at.'</td>';
                 $msg .= '<td class="text-center">';
-                $msg .= '<a href="javascript:;" title="modify this" class="edit-btn btn btn-sm btn-light btn-active-light-primary">';
-                $msg .= '<!--begin::Svg Icon | path: assets/media/icons/duotone/Design/Edit.svg-->
-                <span class="svg-icon svg-icon-muted svg-icon-2hx"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                        <path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "/>
-                        <rect fill="#000000" opacity="0.3" x="5" y="20" width="15" height="2" rx="1"/>
-                </svg></span>
-                <!--end::Svg Icon--></a>';
-                $msg .= '<a href="javascript:;" title="remove this" class="remove-btn btn btn-sm btn-light btn-active-light-danger">';
-                $msg .= '<!--begin::Svg Icon | path: assets/media/icons/duotone/Design/Eraser.svg-->
-                <span class="svg-icon svg-icon-muted svg-icon-2hx"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
-                        <path d="M6,9 L6,15 L10,15 L10,9 L6,9 Z M6.25,7 L19.75,7 C20.9926407,7 22,7.81402773 22,8.81818182 L22,15.1818182 C22,16.1859723 20.9926407,17 19.75,17 L6.25,17 C5.00735931,17 4,16.1859723 4,15.1818182 L4,8.81818182 C4,7.81402773 5.00735931,7 6.25,7 Z" fill="#000000" fill-rule="nonzero" transform="translate(13.000000, 12.000000) rotate(-45.000000) translate(-13.000000, -12.000000) "/>
-                </svg></span>
-                <!--end::Svg Icon-->';
+                if(($this->permission(2)) > 0) {
+                    $msg .= '<a href="javascript:;" title="modify this" class="edit-btn btn btn-sm btn-light btn-active-light-primary">';
+                    $msg .= '<!--begin::Svg Icon | path: assets/media/icons/duotone/Design/Edit.svg-->
+                    <span class="svg-icon svg-icon-muted svg-icon-2hx"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                            <path d="M8,17.9148182 L8,5.96685884 C8,5.56391781 8.16211443,5.17792052 8.44982609,4.89581508 L10.965708,2.42895648 C11.5426798,1.86322723 12.4640974,1.85620921 13.0496196,2.41308426 L15.5337377,4.77566479 C15.8314604,5.0588212 16,5.45170806 16,5.86258077 L16,17.9148182 C16,18.7432453 15.3284271,19.4148182 14.5,19.4148182 L9.5,19.4148182 C8.67157288,19.4148182 8,18.7432453 8,17.9148182 Z" fill="#000000" fill-rule="nonzero" transform="translate(12.000000, 10.707409) rotate(-135.000000) translate(-12.000000, -10.707409) "/>
+                            <rect fill="#000000" opacity="0.3" x="5" y="20" width="15" height="2" rx="1"/>
+                    </svg></span>
+                    <!--end::Svg Icon--></a>';
+                }
+                if(($this->permission(3)) > 0) {
+                    $msg .= '<a href="javascript:;" title="remove this" class="remove-btn btn btn-sm btn-light btn-active-light-danger">';
+                    $msg .= '<!--begin::Svg Icon | path: assets/media/icons/duotone/Design/Eraser.svg-->
+                    <span class="svg-icon svg-icon-muted svg-icon-2hx"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                            <path d="M6,9 L6,15 L10,15 L10,9 L6,9 Z M6.25,7 L19.75,7 C20.9926407,7 22,7.81402773 22,8.81818182 L22,15.1818182 C22,16.1859723 20.9926407,17 19.75,17 L6.25,17 C5.00735931,17 4,16.1859723 4,15.1818182 L4,8.81818182 C4,7.81402773 5.00735931,7 6.25,7 Z" fill="#000000" fill-rule="nonzero" transform="translate(13.000000, 12.000000) rotate(-45.000000) translate(-13.000000, -12.000000) "/>
+                    </svg></span>
+                    <!--end::Svg Icon--></a>';
+                }
                 $msg .= '</td>';
                 $msg .= '</tr>';
             }
@@ -413,7 +433,7 @@ class CustomerController extends Controller
 
     public function remove(Request $request, $id)
     {   
-        // $this->is_permitted(3);
+        $this->is_permitted(3);
         $timestamp = date('Y-m-d H:i:s');
         $customer = Customer::where([
             'id' => $id,
@@ -437,7 +457,7 @@ class CustomerController extends Controller
 
     public function restore(Request $request, $id)
     {   
-        // $this->is_permitted(3);
+        $this->is_permitted(3);
         $timestamp = date('Y-m-d H:i:s');
         $customer = Customer::where([
             'id' => $id,
@@ -461,7 +481,7 @@ class CustomerController extends Controller
 
     public function import(Request $request)
     {   
-        // $this->is_permitted(0);
+        $this->is_permitted(0); $this->is_permitted(2);
         foreach($_FILES as $file)
         {   
             $row = 0; $timestamp = date('Y-m-d H:i:s');
@@ -530,6 +550,7 @@ class CustomerController extends Controller
 
     public function export(Request $request)
     {   
+        $this->is_permitted(1);
         $fileName = 'customers_'.time().'.csv';
 
         $customers = Customer::select([

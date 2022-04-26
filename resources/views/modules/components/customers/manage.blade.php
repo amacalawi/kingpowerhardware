@@ -41,6 +41,7 @@
                             </select>
                         </div>
 
+                        @if ($permission[2] == 1) 
                         <!--begin::Import-->
                         <button type="button" class="btn btn-light-primary me-3" data-bs-toggle="modal" data-bs-target="#importCustomerModal">
                         <!--begin::Svg Icon | path: assets/media/icons/duotone/Files/Import.svg-->
@@ -55,7 +56,10 @@
                             </svg>
                         </span>
                         <!--end::Svg Icon-->Import</button>
+                        @endif
+
                         <!--end::Import-->
+                        @if ($permission[1] == 1) 
                         <!--begin::Export-->
                         <button type="button" class="btn btn-light-primary me-3" onclick="window.open('{{ url('/auth/components/customers/export') }}', '_blank')">
                         <!--begin::Svg Icon | path: icons/duotone/Files/Export.svg-->
@@ -71,6 +75,9 @@
                         </span>
                         <!--end::Svg Icon-->Export</button>
                         <!--end::Export-->
+                        @endif
+
+                        @if ($permission[0] == 1) 
                         <!--begin::Add customer-->
                         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#customerModal">
                         <!--begin::Svg Icon | path: icons/duotone/Navigation/Plus.svg-->
@@ -82,6 +89,8 @@
                         </span>
                         <!--end::Svg Icon-->Add Customer</button>
                         <!--end::Add customer-->
+                        @endif
+                        
                     </div>
                     <!--end::Toolbar-->
                     <!--begin::Group actions-->

@@ -69,6 +69,9 @@ class TransferItemReportExport implements WithEvents, WithStyles, WithColumnWidt
             'transfer_items_lines.srp as srp',
             'transfer_items_lines.total_amount as total_amount',
             'transfer_items_lines.posted_quantity as posted_quantity',
+            'transfer_items_lines.discount1 as disc1',
+            'transfer_items_lines.discount2 as disc2',
+            'transfer_items_lines.plus as plus',
             'bra1.name as branchFrom',
             'bra2.name as branchTo',
             'transfer_items.transfer_no as transNo',
@@ -104,6 +107,9 @@ class TransferItemReportExport implements WithEvents, WithStyles, WithColumnWidt
                   ->orWhere('transfer_items_lines.quantity', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.total_amount', 'like', '%' . $keywords . '%')
                   ->orWhere('transfer_items_lines.posted_quantity', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount1', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.discount2', 'like', '%' . $keywords . '%')
+                  ->orWhere('transfer_items_lines.plus', 'like', '%' . $keywords . '%')
                   ->orWhere('unit_of_measurements.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.code', 'like', '%' . $keywords . '%')
                   ->orWhere('items.name', 'like', '%' . $keywords . '%')
@@ -249,7 +255,7 @@ class TransferItemReportExport implements WithEvents, WithStyles, WithColumnWidt
                 $firstStartColumn = $this->getColumns(0);
                 $firstEndColumn = $this->getColumns(5);
                 $secondStartColumn = $this->getColumns(6);
-                $headers = ['TRANSACTION DATE', 'TRANSFER NO', 'BRANCH FROM', 'BRANCH TO', 'CATEGORY', 'ITEMS', 'UOM', 'QUANTITY', 'SRP', 'STATUS', 'TOTAL'];
+                $headers = ['TRANSACTION DATE', 'TRANSFER NO', 'BRANCH FROM', 'BRANCH TO', 'CATEGORY', 'ITEMS', 'UOM', 'QUANTITY', 'SRP', 'PLUS', 'DISCOUNT 1', 'DISCOUNT 2', 'STATUS', 'TOTAL'];
                 
                 $event->sheet->getDelegate()->mergeCells('A1:'.$maxColumn.'1');
                 $event->sheet->getStyle('A1:'.$maxColumn.'1')->applyFromArray($styleArray1)->getAlignment()->setHorizontal('center');
@@ -318,24 +324,36 @@ class TransferItemReportExport implements WithEvents, WithStyles, WithColumnWidt
 
                     $event->sheet->setCellValue('J'.$rows, number_format(floor(($line->srp*100))/100,2));
                     $event->sheet->getStyle('J'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('right');
-
-                    $status = ($this->status == 'partial' || $this->status == 'posted') ? $line->status : 'prepared';
-                    $event->sheet->setCellValue('K'.$rows, $status);
+                    
+                    $plus = $line->plus ? $line->plus.'%' : '';
+                    $event->sheet->setCellValue('K'.$rows, $plus);
                     $event->sheet->getStyle('K'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
 
+                    $disc1 = $line->disc1 ? $line->disc1.'%' : '';
+                    $event->sheet->setCellValue('L'.$rows, $disc1);
+                    $event->sheet->getStyle('L'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
+
+                    $disc2 = $line->disc2 ? $line->disc2.'%' : '';
+                    $event->sheet->setCellValue('M'.$rows, $disc2);
+                    $event->sheet->getStyle('M'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
+
+                    $status = ($this->status == 'partial' || $this->status == 'posted') ? $line->status : 'prepared';
+                    $event->sheet->setCellValue('N'.$rows, $status);
+                    $event->sheet->getStyle('N'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('center');
+
                     
-                    $event->sheet->setCellValue('L'.$rows, number_format(floor(($line->total_amount*100))/100,2));
-                    $event->sheet->getStyle('L'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('right');
+                    $event->sheet->setCellValue('O'.$rows, number_format(floor(($line->total_amount*100))/100,2));
+                    $event->sheet->getStyle('O'.$rows)->applyFromArray($styleArray5)->getAlignment()->setHorizontal('right');
                     $totalAmt += floatval($line->total_amount);
                     $rows++;
                 }
 
-                $event->sheet->getDelegate()->mergeCells('A'.$rows.':K'.$rows);
+                $event->sheet->getDelegate()->mergeCells('A'.$rows.':N'.$rows);
                 $event->sheet->setCellValue('A'.$rows, 'TOTAL AMOUNT:');
-                $event->sheet->getStyle('A'.$rows.':K'.$rows)->applyFromArray($styleArray6)->getAlignment()->setHorizontal('right');
+                $event->sheet->getStyle('A'.$rows.':N'.$rows)->applyFromArray($styleArray6)->getAlignment()->setHorizontal('right');
 
-                $event->sheet->setCellValue('L'.$rows, number_format(floor(($totalAmt*100))/100,2));
-                $event->sheet->getStyle('L'.$rows)->applyFromArray($styleArray3)->getAlignment()->setHorizontal('right');
+                $event->sheet->setCellValue('O'.$rows, number_format(floor(($totalAmt*100))/100,2));
+                $event->sheet->getStyle('O'.$rows)->applyFromArray($styleArray3)->getAlignment()->setHorizontal('right');
             },
         ];
     }
@@ -356,7 +374,8 @@ class TransferItemReportExport implements WithEvents, WithStyles, WithColumnWidt
             'K' => 20,
             'L' => 20,
             'M' => 20,
-            'N' => 20,   
+            'N' => 20, 
+            'O' => 20,     
         ];
     }
 

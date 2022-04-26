@@ -74,11 +74,40 @@
     },
 
     transfer_item.prototype.compute = function(form) {
+        // var qty = form.find('#qty');
+        // var total_amount = form.find('#total_amountx');
+        // var srp = form.find('#srp').val();
+        // var totalAmt = 0;
+        // if (qty.val() != '') {
+        //     totalAmt = parseFloat(srp) * parseFloat(qty.val());
+        // } else {
+        //     totalAmt = 0;
+        // }
+        // total_amount.val($.transfer_item.truncate(totalAmt));
+
         var qty = form.find('#qty');
         var total_amount = form.find('#total_amountx');
-        var srp = form.find('#srp').val();
+        var disc1 = form.find('#disc1');
+        var disc2 = form.find('#disc2');
+        var srp = (form.find('#srp_special').val() != '') ? form.find('#srp_special').val() : form.find('#srp').val();
+        var plus = form.find('#plus');
         var totalAmt = 0;
         if (qty.val() != '') {
+            if (disc1.val() != '') {
+                var disc1x = parseFloat(disc1.val() / 100);
+                console.log(disc1x);
+                srp = parseFloat(srp) - parseFloat(parseFloat(srp) * parseFloat(disc1x)); 
+            }
+            if (disc2.val() != '') {
+                var disc2 = parseFloat(disc2.val() / 100);
+                console.log(disc2);
+                srp = parseFloat(srp) - parseFloat(parseFloat(srp) * parseFloat(disc2)); 
+            }
+            if (plus.val() != '') {
+                var plusx = parseFloat(plus.val() / 100);
+                console.log(plusx);
+                srp = parseFloat(parseFloat(srp) * parseFloat(plusx)) + parseFloat(srp); 
+            }
             totalAmt = parseFloat(srp) * parseFloat(qty.val());
         } else {
             totalAmt = 0;
@@ -610,9 +639,9 @@
                 "hideMethod": "fadeOut"
             };
             var modal = $('#transferItemModal');
-            var keywords =  $('#transfer_item_id').val() + '?total_amount=' + $('#transferItemLineForm #total_amountx').val() + '&srp=' + $('#transferItemLineForm #srp').val(); 
+            var keywords =  $('#transfer_item_id').val() + '?uom_id='+ $('#transferItemLineForm #uom_id').val() +'&total_amount=' + $('#transferItemLineForm #total_amountx').val() + '&srp=' + $('#transferItemLineForm #srp').val(); 
             var $lineID = $('#transferItemLineForm').find('input[name="transfer_item_line_id"]').val();
-            var $url = ($lineID != '') ? base_url + 'auth/items/transfer-items/update-line-item/' + $lineID + '?total_amount=' + $('#transferItemLineForm #total_amountx').val() + '&srp=' + $('#transferItemLineForm #srp').val() : $('#transferItemLineForm').attr('action') + '/' + keywords; 
+            var $url = ($lineID != '') ? base_url + 'auth/items/transfer-items/update-line-item/' + $lineID + '?uom_id='+ $('#transferItemLineForm #uom_id').val() +'&total_amount=' + $('#transferItemLineForm #total_amountx').val() + '&srp=' + $('#transferItemLineForm #srp').val() : $('#transferItemLineForm').attr('action') + '/' + keywords; 
             var $method = ($lineID != '') ? 'PUT' : 'POST';
             n &&
             n.validate().then(function (e) {
@@ -959,6 +988,18 @@
                     self.prop('disabled', false);
                 },
             });
+        });
+
+        /*
+        | ---------------------------------
+        | # when transferItemLineForm onkeyup blur
+        | ---------------------------------
+        */
+        this.$body.on('keyup', '#transferItemLineForm #qty, #transferItemLineForm #plus, #transferItemLineForm #disc1, #transferItemLineForm #disc2, #transferItemLineForm #srp_special', function (e) {
+            $.transfer_item.compute($('#transferItemLineForm'));
+        });
+        this.$body.on('blur', '#transferItemLineForm #qty, #transferItemLineForm #plus, #transferItemLineForm #disc1, #transferItemLineForm #disc2, #transferItemLineForm #srp_special', function (e) {
+            $.transfer_item.compute($('#transferItemLineForm'));
         });
     }
 
