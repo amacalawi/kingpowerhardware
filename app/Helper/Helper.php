@@ -16,7 +16,7 @@ class Helper
 
         if (request()->segment(2) !== null && request()->segment(3) == null) {
             $moduleID = Module::where('slug', request()->segment(2))->first()->id;
-            $privileges = RoleModule::where(['role_id' => $role->id, 'module_id' => $moduleID, 'is_active' => 1])->get();
+            $privileges = RoleModule::where(['role_id' => $role->role_id, 'module_id' => $moduleID, 'is_active' => 1])->get();
             if ($privileges->count() > 0) {
                 return $privileges->first()->permissions;
             }
