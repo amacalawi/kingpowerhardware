@@ -22,7 +22,7 @@ class Helper
             }
         } else {
             $subModuleID = SubModule::where('slug', request()->segment(3))->first()->id;
-            $privileges = RoleSubModule::where(['role_id' => $role->id, 'sub_module_id' => $subModuleID, 'is_active' => 1])->get();
+            $privileges = RoleSubModule::where(['role_id' => $role->role_id, 'sub_module_id' => $subModuleID, 'is_active' => 1])->get();
             if ($privileges->count() > 0) {
                 return $privileges->first()->permissions;
             }
