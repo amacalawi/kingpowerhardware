@@ -133,6 +133,7 @@ Route::prefix('auth')->group(function () {
             Route::get('find-item-quantity/{itemID?}/{branchId?}',[ItemController::class, 'find_item_quantity']);
             Route::post('store-withdrawal',[ItemController::class, 'store_withdrawal']);
             Route::post('store-receiving',[ItemController::class, 'store_receiving']);
+            Route::put('restore/{id?}',[ItemController::class, 'restore']);
         });
         
         Route::prefix('inventory-adjustment')->group(function () {

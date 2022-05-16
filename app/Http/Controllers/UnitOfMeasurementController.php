@@ -162,8 +162,8 @@ class UnitOfMeasurementController extends Controller
         $msg .= '</thead>';
         $msg .= '<tbody class="fw-bold text-gray-600">';
         
-        $query = $this->get_line_items($per_page, $start_from, $keywords);
-        $count = $this->get_page_count($per_page, $start_from, $keywords);
+        $query = $this->get_line_items($per_page, $start_from, $keywords, 1);
+        $count = $this->get_page_count($per_page, $start_from, $keywords, 1);
         $no_of_paginations = ceil($count / $per_page);
         $assets = url('assets/media/illustrations/work.png');
 
@@ -206,7 +206,7 @@ class UnitOfMeasurementController extends Controller
                 <span class="svg-icon svg-icon-muted svg-icon-2hx"><svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
                         <path d="M6,9 L6,15 L10,15 L10,9 L6,9 Z M6.25,7 L19.75,7 C20.9926407,7 22,7.81402773 22,8.81818182 L22,15.1818182 C22,16.1859723 20.9926407,17 19.75,17 L6.25,17 C5.00735931,17 4,16.1859723 4,15.1818182 L4,8.81818182 C4,7.81402773 5.00735931,7 6.25,7 Z" fill="#000000" fill-rule="nonzero" transform="translate(13.000000, 12.000000) rotate(-45.000000) translate(-13.000000, -12.000000) "/>
                 </svg></span>
-                <!--end::Svg Icon-->';
+                <!--end::Svg Icon--></a>';
                 $msg .= '</td>';
                 $msg .= '</tr>';
             }
@@ -214,10 +214,6 @@ class UnitOfMeasurementController extends Controller
         $msg .= '</tbody>';
         $msg .= '</table>';
         $msg .= '</div>';
-
-        $count = $this->get_page_count($per_page, $start_from, $keywords);
-  
-        $no_of_paginations = ceil($count / $per_page);
 
         if ($cur_page >= 5) {
             $start_loop = $cur_page - 2;
@@ -288,7 +284,160 @@ class UnitOfMeasurementController extends Controller
         echo $msg;
     }
 
-    public function get_line_items($limit, $start_from, $keywords = '')
+    public function all_inactive(Request $request)
+    {   
+        $keywords     = $request->get('keywords');  
+        $cur_page     = null != $request->post('page') ? $request->post('page') : 1;
+        $per_page     = $request->get('perPage') == -1 ? 0 : $request->get('perPage');
+        $page         = $cur_page !== null ? $cur_page : 1;
+        $start_from   = ($page-1) * $per_page;
+
+        $previous_btn = true;
+        $next_btn = true;
+        $value = 0;
+        $first_btn = true;
+        $pagess = 0;
+        $last_btn = true;
+
+        $msg = "";
+        
+        $msg .= '<div class="table-responsive">';
+        $msg .= '<table class="table align-middle table-row-dashed fs-6 gy-5" id="uomTable">';
+        $msg .= '<thead>';
+            $msg .= '<tr class="text-start text-gray-400 fw-bolder fs-7 text-uppercase gs-0">';
+            $msg .= '<th class="w-10px pe-2">';
+            $msg .= '<div class="form-check form-check-sm form-check-custom form-check-solid me-3">';
+            $msg .= '<input class="form-check-input" type="checkbox" data-kt-check="true" data-kt-check-target="#kt_unit_of_measurements_table .form-check-input" value="1" />';
+            $msg .= '</div>';
+            $msg .= '</th>';
+            $msg .= '<th class="min-w-100px">Code</th>';
+            $msg .= '<th class="min-w-125px">Name</th>';
+            $msg .= '<th class="min-w-125px">Description</th>';
+            $msg .= '<th class="min-w-125px text-center">Last Modified</th>';
+            $msg .= '<th class="text-center min-w-70px">Actions</th>';
+            $msg .= '</tr>';
+        $msg .= '</thead>';
+        $msg .= '<tbody class="fw-bold text-gray-600">';
+        
+        $query = $this->get_line_items($per_page, $start_from, $keywords, 0);
+        $count = $this->get_page_count($per_page, $start_from, $keywords, 0);
+        $no_of_paginations = ceil($count / $per_page);
+        $assets = url('assets/media/illustrations/work.png');
+
+        if($count <= 0)
+        {
+            $msg .= '<tr>';
+            $msg .= '<td colspan="8" class="text-center">there are no data has been displayed.<br/><br/><br/>';
+            $msg .= '<img class="mw-100 mh-200px" alt="" src="'.$assets.'">';
+            $msg .= '</td>';
+            $msg .= '<tr>';
+        } 
+        else 
+        {
+            foreach ($query as $row)
+            {  
+                $msg .= '<tr data-row-id="'.$row->id.'" data-row-code="'.$row->code.'">';
+                $msg .= '<td>';
+                $msg .= '<div class="form-check form-check-sm form-check-custom form-check-solid">';
+                $msg .= '<input class="form-check-input" type="checkbox" value="'.$row->id.'" />';
+                $msg .= '</div>';
+                $msg .= '</td>';
+                $msg .= '<td>';
+                $msg .= '<a href="#" class="text-gray-800 text-hover-primary mb-1">'.$row->code.'</a>';
+                $msg .= '</td>';
+                $msg .= '<td>';
+                $msg .= $row->name;
+                $msg .= '</td>';
+                $msg .= '<td>'.$row->description.'</td>';
+                $msg .= '<td class="text-center">'.$row->modified_at.'</td>';
+                $msg .= '<td class="text-center">';
+                $msg .= '<a href="javascript:;" title="modify this" class="restore-btn btn btn-sm btn-light btn-active-light-info">';
+                $msg .= '<!--begin::Svg Icon | path: assets/media/icons/duotone/Text/Undo.svg-->
+                <span class="svg-icon svg-icon-muted svg-icon-2hx"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                        <rect x="0" y="0" width="24" height="24"/>
+                        <path d="M21.4451171,17.7910156 C21.4451171,16.9707031 21.6208984,13.7333984 19.0671874,11.1650391 C17.3484374,9.43652344 14.7761718,9.13671875 11.6999999,9 L11.6999999,4.69307548 C11.6999999,4.27886191 11.3642135,3.94307548 10.9499999,3.94307548 C10.7636897,3.94307548 10.584049,4.01242035 10.4460626,4.13760526 L3.30599678,10.6152626 C2.99921905,10.8935795 2.976147,11.3678924 3.2544639,11.6746702 C3.26907199,11.6907721 3.28437331,11.7062312 3.30032452,11.7210037 L10.4403903,18.333467 C10.7442966,18.6149166 11.2188212,18.596712 11.5002708,18.2928057 C11.628669,18.1541628 11.6999999,17.9721616 11.6999999,17.7831961 L11.6999999,13.5 C13.6531249,13.5537109 15.0443703,13.6779456 16.3083984,14.0800781 C18.1284272,14.6590944 19.5349747,16.3018455 20.5280411,19.0083314 L20.5280247,19.0083374 C20.6363903,19.3036749 20.9175496,19.5 21.2321404,19.5 L21.4499999,19.5 C21.4499999,19.0068359 21.4451171,18.2255859 21.4451171,17.7910156 Z" fill="#000000" fill-rule="nonzero"/>
+                    </g>
+                </svg></span>
+                <!--end::Svg Icon--></a>';
+                $msg .= '</td>';
+                $msg .= '</tr>';
+            }
+        }
+        $msg .= '</tbody>';
+        $msg .= '</table>';
+        $msg .= '</div>';
+
+        if ($cur_page >= 5) {
+            $start_loop = $cur_page - 2;
+            if ($no_of_paginations > $cur_page + 2)
+                $end_loop = $cur_page + 2;
+            else if ($cur_page <= $no_of_paginations && $cur_page > $no_of_paginations - 6) {
+                $start_loop = $no_of_paginations - 4;
+                $end_loop = $no_of_paginations;
+            } else {
+                $end_loop = $no_of_paginations;
+            }
+        } else {
+            $start_loop = 1;
+            if ($no_of_paginations > 5)
+                $end_loop = 5;
+            else
+                $end_loop = $no_of_paginations;
+        }
+
+        $msg .= '<div class="row"><div class="col-sm-6 pl-5"><div class="dataTables_paginate paging_simple_numbers" id="kt_unit_of_measurements_table_paginate"><ul class="pagination" style="margin-bottom: 0;">';
+
+        // FOR ENABLING THE PREVIOUS BUTTON
+        if ($previous_btn && $cur_page > 1) {
+            $pre = $cur_page - 1;
+            $msg .= '<li class="paginate_button page-item" p="'.$pre.'">';
+            $msg .= '<a href="javascript:;" aria-label="Previous" class="page-link">';
+            $msg .= '<i class="la la-angle-left"></i>';
+            $msg .= '</a>';
+            $msg .= '</li>';
+        } else if ($previous_btn) {
+            $msg .= '<li class="paginate_button page-item disabled">';
+            $msg .= '<a href="javascript:;" aria-label="Previous" class="page-link">';
+            $msg .= '<i class="la la-angle-left"></i>';
+            $msg .= '</a>';
+            $msg .= '</li>';
+        }
+        for ($i = $start_loop; $i <= $end_loop; $i++) {
+
+            if ($cur_page == $i)
+                $msg .= '<li class="paginate_button page-item active" p="'.$i.'"><a href="javascript:;" class="page-link">'.$i.'</a></li>';
+            else
+                $msg .= '<li class="paginate_button page-item ping" p="'.$i.'"><a href="javascript:;" class="page-link">'.$i.'</a></li>';
+        }
+
+        // TO ENABLE THE NEXT BUTTON
+        if ($next_btn && $cur_page < $no_of_paginations) {
+            $nex = $cur_page + 1;
+            $msg .= '<li class="paginate_button page-item" p="'.$nex.'">';
+            $msg .= '<a href="javascript:;" aria-label="Next" class="page-link">';
+            $msg .= '<i class="la la-angle-right"></i>';
+            $msg .= '</a>';
+            $msg .= '</li>';
+        } else if ($next_btn) {
+            $msg .= '<li class="paginate_button page-item disabled">';
+            $msg .= '<a href="javascript:;" aria-label="Next" class="page-link">';
+            $msg .= '<i class="la la-angle-right"></i>';
+            $msg .= '</a>';
+            $msg .= '</li>';
+        }
+
+        $msg .= '</ul></div></div>';
+
+        $show = ($per_page < $count) ? (($per_page * $cur_page) <= $count) ? ($per_page * $cur_page) : $count : $count;  
+        $cur_page = ($cur_page <= 1) ?  ($count != 0) ? $cur_page : $count : (($cur_page - 1) * $per_page) + 1;
+
+        $total_string = '<div class="infos">Showing '. $cur_page .' to '.$show.' of '.$count.' entries</div>';
+        $msg .= '<div class="col-sm-6 text-right pr-5">'.$total_string.'</div><div class="clearfix"></div></div>';
+        echo $msg;
+    }
+
+    public function get_line_items($limit, $start_from, $keywords = '', $status)
     {
         if (!empty($keywords)) {
             $res = UnitOfMeasurement::select([
@@ -299,7 +448,7 @@ class UnitOfMeasurementController extends Controller
                 'unit_of_measurements.created_at',
                 'unit_of_measurements.updated_at'
             ])
-            ->where('unit_of_measurements.is_active', 1)
+            ->where('unit_of_measurements.is_active', $status)
             ->where(function($q) use ($keywords) {
                 $q->where('unit_of_measurements.code', 'like', '%' . $keywords . '%')
                   ->orWhere('unit_of_measurements.name', 'like', '%' . $keywords . '%')
@@ -317,7 +466,7 @@ class UnitOfMeasurementController extends Controller
                 'unit_of_measurements.created_at',
                 'unit_of_measurements.updated_at'
             ])
-            ->where('unit_of_measurements.is_active', 1)
+            ->where('unit_of_measurements.is_active', $status)
             ->skip($start_from)->take($limit)
             ->orderBy('unit_of_measurements.id', 'desc')
             ->get();
@@ -336,7 +485,7 @@ class UnitOfMeasurementController extends Controller
         });
     }
 
-    public function get_page_count($limit, $start_from, $keywords = '')
+    public function get_page_count($limit, $start_from, $keywords = '', $status)
     {
         if (!empty($keywords)) {
             $res = UnitOfMeasurement::select([
@@ -359,7 +508,7 @@ class UnitOfMeasurementController extends Controller
                 'unit_of_measurements.name',
                 'unit_of_measurements.description'
             ])
-            ->where('unit_of_measurements.is_active', 1)
+            ->where('unit_of_measurements.is_active', $status)
             ->count();
         }
 

@@ -21,7 +21,7 @@
         <!--end::Page title-->
         <!--begin::Actions-->
         <div class="d-flex align-items-center py-1">
-            @if (strtolower(Request::segment(2)) == 'components')
+            @if (strtolower(Request::segment(2)) == 'components' || (strtolower(Request::segment(2)) == 'items' && strtolower(Request::segment(3)) == 'listing'))
                 @if (!Request::segment(4))
                 <a href="{{ url('/auth').'/'.Request::segment(2).'/'.Request::segment(3).'/inactive' }}" class="text-danger" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-end" data-kt-menu-flip="top-end">
                     Move to Inactive Records
