@@ -507,6 +507,49 @@
             modal.modal('show');
         });
         
+        /*
+        | ---------------------------------
+        | # when restore button is clicked
+        | ---------------------------------
+        */
+        this.$body.on('click', '#itemTable .restore-btn', function (e) {
+            var id     = $(this).closest('tr').attr('data-row-id');
+            var code   = $(this).closest('tr').attr('data-row-code');
+            var urlz   = base_url + 'auth/items/listing/restore/' + id;
+            console.log(urlz);
+            Swal.fire({
+                html: "Are you sure you? <br/>the item with code ("+ code +")<br/>will be restored.",
+                icon: "warning",
+                showCancelButton: !0,
+                buttonsStyling: !1,
+                confirmButtonText: "Yes, restore it!",
+                cancelButtonText: "No, return",
+                customClass: { confirmButton: "btn btn-danger", cancelButton: "btn btn-active-light" },
+            }).then(function (t) {
+                t.value
+                    ? 
+                    $.ajax({
+                        type: 'PUT',
+                        url: urlz,
+                        success: function(response) {
+                            var data = $.parseJSON(response);
+                            console.log(data);
+                            Swal.fire({ title: data.title, text: data.text, icon: data.type, buttonsStyling: !1, confirmButtonText: "Ok, got it!", customClass: { confirmButton: "btn btn-primary" } }).then(
+                                function (e) {
+                                    e.isConfirmed && ((t.disabled = !1));
+                                    $.item.load_contents(1);
+                                }
+                            );
+                        },
+                        complete: function() {
+                            window.onkeydown = null;
+                            window.onfocus = null;
+                        }
+                    })
+                    : "cancel" === t.dismiss 
+            });
+            
+        }); 
     }
 
     //init item
